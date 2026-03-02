@@ -50,6 +50,7 @@ public interface BankStatementRepository extends JpaRepository<BankStatement, Lo
 
     @Query("SELECT s FROM BankStatement s ORDER BY s.createdAt DESC")
     List<BankStatement> findAllOrderByCreatedAtDesc();
+    Optional<BankStatement> findFirstByFilenameOrderByIdDesc(String filename);
 
     Page<BankStatement> findAllByOrderByCreatedAtDesc(Pageable pageable);
 

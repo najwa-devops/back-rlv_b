@@ -6,7 +6,6 @@ import com.example.releve_bancaire.banking_entity.BankTransaction;
 import com.example.releve_bancaire.banking_repository.BankStatementRepository;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
 import com.example.releve_bancaire.banking_services.banking_ocr.OcrCleaningService;
-import com.example.releve_bancaire.banking_services.banking_ocr.OcrService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -17,13 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDate;
@@ -32,7 +26,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * ✅ SERVICE TRAITEMENT RELEVÉS BANCAIRES - VERSION
@@ -52,16 +45,12 @@ public class BankStatementProcessingService {
 
     private final BankStatementProcessor bankStatementProcessor;
     private final OcrCleaningService cleaningService;
-    private final OcrService ocrService;
     private final MetadataExtractorService metadataExtractor;
     private final TransactionExtractorService transactionExtractor; // ✅ VERSION 2
     private final BankTransactionAccountLearningService accountLearningService;
     private final BankStatementValidatorService validator;
     private final BankStatementRepository statementRepository;
     private final BankTransactionRepository transactionRepository;
-
-    @Value("${banking.upload.dir:${UPLOAD_BANK_DIR:/home/najwa/Documents/PFE_Facturation/uploads_banking}}")
-    private String bankingUploadDir;
 
     @Value("${banking.duplicate-detection-enabled:false}")
     private boolean duplicateDetectionEnabled;
@@ -444,80 +433,22 @@ public class BankStatementProcessingService {
     }
 
     private String performExtraction(BankStatement statement) {
-        File file = resolveStatementFile(statement);
-        if (file == null || !file.exists()) {
-            throw new RuntimeException("Fichier introuvable. filePath=" + statement.getFilePath()
-                    + ", filename=" + statement.getFilename() + ", originalName=" + statement.getOriginalName());
+        byte[] fileData = statement.getFileData();
+        if (fileData == null || fileData.length == 0) {
+            throw new RuntimeException("Fichier introuvable en base. id=" + statement.getId()
+                    + ", filename=" + statement.getFilename());
         }
 
-        log.info("Extraction du fichier: {} ({} bytes)", file.getName(), file.length());
+        String sourceName = statement.getOriginalName() != null ? statement.getOriginalName() : statement.getFilename();
+        log.info("Extraction du fichier en base: {} ({} bytes)", sourceName, fileData.length);
 
-        String extractedText = bankStatementProcessor.process(file);
-        if (extractedText == null || extractedText.trim().isEmpty()) {
-            log.warn("Extraction primaire vide, fallback vers OcrService: {}", file.getAbsolutePath());
-            extractedText = ocrService.extractText(file);
-        }
-
+        String extractedText = bankStatementProcessor.process(fileData, sourceName);
         if (extractedText == null || extractedText.trim().isEmpty()) {
             throw new RuntimeException("Le processeur n'a extrait aucun texte du fichier");
         }
 
         log.info("✅ Extraction terminée: {} caractères", extractedText.length());
         return extractedText;
-    }
-
-    private File resolveStatementFile(BankStatement statement) {
-        if (statement.getFilePath() != null && !statement.getFilePath().isBlank()) {
-            File direct = new File(statement.getFilePath());
-            if (direct.exists()) {
-                return direct;
-            }
-        }
-
-        List<String> candidateNames = new ArrayList<>();
-        if (statement.getFilename() != null && !statement.getFilename().isBlank()) {
-            candidateNames.add(statement.getFilename());
-        }
-        if (statement.getOriginalName() != null && !statement.getOriginalName().isBlank()) {
-            candidateNames.add(statement.getOriginalName());
-        }
-
-        List<Path> roots = List.of(
-                Paths.get(bankingUploadDir),
-                Paths.get("uploads"),
-                Paths.get("uploads_banking"));
-
-        for (Path root : roots) {
-            if (!Files.exists(root)) {
-                continue;
-            }
-            for (String name : candidateNames) {
-                Path found = findFileByName(root, name);
-                if (found != null) {
-                    String resolved = found.toAbsolutePath().toString();
-                    statement.setFilePath(resolved);
-                    statementRepository.save(statement);
-                    log.warn("filePath corrigé automatiquement pour relevé {} -> {}", statement.getId(), resolved);
-                    return found.toFile();
-                }
-            }
-        }
-        return null;
-    }
-
-    private Path findFileByName(Path root, String filename) {
-        try (Stream<Path> walk = Files.walk(root, 8)) {
-            return walk
-                    .filter(Files::isRegularFile)
-                    .filter(p -> {
-                        String current = p.getFileName().toString();
-                        return current.equals(filename) || current.endsWith("_" + filename);
-                    })
-                    .findFirst()
-                    .orElse(null);
-        } catch (IOException e) {
-            return null;
-        }
     }
 
     private void applyMetadata(BankStatement statement, MetadataExtractorService.BankStatementMetadata metadata) {

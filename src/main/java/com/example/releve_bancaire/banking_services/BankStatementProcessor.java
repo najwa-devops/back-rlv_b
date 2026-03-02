@@ -10,6 +10,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +53,37 @@ public class BankStatementProcessor {
             }
         } catch (Exception e) {
             log.error("❌ Erreur BankStatementProcessor: {}", e.getMessage(), e);
+            throw new RuntimeException("Échec du traitement bancaire: " + e.getMessage(), e);
+        }
+    }
+
+    public String process(byte[] fileData, String filename) {
+        if (fileData == null || fileData.length == 0) {
+            throw new IllegalArgumentException("Contenu de fichier vide");
+        }
+
+        String normalizedName = filename != null ? filename.toLowerCase() : "statement";
+        log.info("🚀 BankStatementProcessor: Traitement en mémoire de {}", normalizedName);
+
+        try {
+            if (normalizedName.endsWith(".pdf")) {
+                try (PDDocument document = PDDocument.load(fileData)) {
+                    if (isTextPdf(document)) {
+                        log.info("📄 PDF Texte détecté - Extraction directe (Sans OCR)");
+                        return extractTextFromPdf(document);
+                    }
+                    log.info("🖼️ PDF Scanné détecté - Lancement du pipeline OCR multi-pages");
+                    return extractTextViaOcr(document);
+                }
+            } else if (normalizedName.endsWith(".xlsx") || normalizedName.endsWith(".xls")) {
+                return processExcel(fileData);
+            } else if (isImage(normalizedName)) {
+                return processImage(fileData);
+            } else {
+                throw new UnsupportedOperationException("Format non supporté pour les relevés: " + normalizedName);
+            }
+        } catch (Exception e) {
+            log.error("❌ Erreur BankStatementProcessor (mémoire): {}", e.getMessage(), e);
             throw new RuntimeException("Échec du traitement bancaire: " + e.getMessage(), e);
         }
     }
@@ -162,12 +194,46 @@ public class BankStatementProcessor {
         return content.toString();
     }
 
+    private String processExcel(byte[] excelData) throws IOException {
+        log.info("📊 Extraction Excel directe (mémoire)");
+        StringBuilder content = new StringBuilder();
+
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(excelData))) {
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                content.append("=== SHEET: ").append(sheet.getSheetName()).append(" ===\n");
+
+                for (Row row : sheet) {
+                    for (Cell cell : row) {
+                        String cellValue = getCellValueAsString(cell);
+                        if (cellValue != null && !cellValue.trim().isEmpty()) {
+                            content.append(cellValue).append("\t");
+                        }
+                    }
+                    content.append("\n");
+                }
+            }
+        }
+        return content.toString();
+    }
+
     /**
      * Extraction depuis une image simple.
      */
     private String processImage(File imageFile) throws Exception {
         log.info("🖼️ OCR sur image simple");
         BufferedImage image = javax.imageio.ImageIO.read(imageFile);
+        BufferedImage preprocessed = preProcessor.preprocess(image);
+
+        tesseract.setPageSegMode(1);
+        tesseract.setVariable("preserve_interword_spaces", "1");
+
+        return tesseract.doOCR(preprocessed);
+    }
+
+    private String processImage(byte[] imageData) throws Exception {
+        log.info("🖼️ OCR sur image simple (mémoire)");
+        BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(imageData));
         BufferedImage preprocessed = preProcessor.preprocess(image);
 
         tesseract.setPageSegMode(1);

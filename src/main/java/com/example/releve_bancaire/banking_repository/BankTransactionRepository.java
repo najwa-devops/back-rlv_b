@@ -106,4 +106,15 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
                 GROUP BY t.categorie
             """)
     List<Object[]> getGlobalStatisticsByCategorie();
+
+    @Query("""
+            SELECT t
+            FROM BankTransaction t
+            JOIN t.statement s
+            WHERE MONTH(t.dateOperation) = :nmois
+              AND (:year IS NULL OR YEAR(t.dateOperation) = :year)
+              AND s.status IN (com.example.releve_bancaire.banking_entity.BankStatus.VALIDATED, com.example.releve_bancaire.banking_entity.BankStatus.COMPTABILISE)
+            ORDER BY t.dateOperation ASC, t.id ASC
+            """)
+    List<BankTransaction> findAccountingCandidates(@Param("nmois") int nmois, @Param("year") Integer year);
 }

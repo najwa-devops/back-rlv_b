@@ -35,6 +35,14 @@ public class BankStatement {
     @Column
     private Long fileSize;
 
+    @Column(length = 120)
+    private String fileContentType;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "file_data", columnDefinition = "LONGBLOB")
+    private byte[] fileData;
+
     // OCR externalisé (filesystem / S3 / MinIO)
     @Column(length = 500)
     private String ocrFilePath;

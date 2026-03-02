@@ -13,8 +13,8 @@ import com.example.releve_bancaire.banking_services.BankStatementValidatorServic
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,9 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.math.BigDecimal;
@@ -95,15 +92,17 @@ public class BankStatementController {
             }
 
             // Stocker le fichier
-            String filePath = bankFileStorageService.storeBankStatement(file);
-            log.info("✅ Fichier stocké: {}", filePath);
+            BankFileStorageService.StoredBankFile storedFile = bankFileStorageService.storeBankStatement(file);
+            log.info("✅ Fichier stocké en base: {}", storedFile.filename());
 
             // Créer l'entité
             BankStatement statement = new BankStatement();
-            statement.setFilename(Paths.get(filePath).getFileName().toString());
-            statement.setOriginalName(originalName);
-            statement.setFilePath(filePath);
-            statement.setFileSize(file.getSize());
+            statement.setFilename(storedFile.filename());
+            statement.setOriginalName(storedFile.originalName());
+            statement.setFilePath("DB_ONLY");
+            statement.setFileSize(storedFile.size());
+            statement.setFileContentType(storedFile.contentType());
+            statement.setFileData(storedFile.data());
             statement.setStatus(BankStatus.PENDING);
 
             // Les dates de période sont déterminées par OCR/extraction metadata.
@@ -478,20 +477,16 @@ public class BankStatementController {
     @CrossOrigin("*")
     public ResponseEntity<Resource> getFile(@PathVariable("filename") String filename) {
         try {
-            Path filePath = findFileInRoots(filename, bankFileStorageService.getBankBaseDirForFiles(),
-                    bankFileStorageService.getBaseDirForFiles());
-            if (filePath == null) {
-                throw new RuntimeException("Fichier non trouvé");
-            }
-
-            Resource resource = new UrlResource(filePath.toUri());
-            if (!resource.exists() || !resource.isReadable()) {
+            Optional<BankStatement> statementOpt = repository.findFirstByFilenameOrderByIdDesc(filename);
+            if (statementOpt.isEmpty() || statementOpt.get().getFileData() == null || statementOpt.get().getFileData().length == 0) {
                 return ResponseEntity.notFound().build();
             }
 
-            String contentType = Files.probeContentType(filePath);
-            if (contentType == null)
-                contentType = "application/octet-stream";
+            BankStatement statement = statementOpt.get();
+            Resource resource = new ByteArrayResource(statement.getFileData());
+            String contentType = statement.getFileContentType() != null
+                    ? statement.getFileContentType()
+                    : "application/octet-stream";
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
@@ -502,23 +497,6 @@ public class BankStatementController {
             log.error("❌ Erreur récupération fichier: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    private Path findFileInRoots(String filename, Path... roots) throws Exception {
-        for (Path root : roots) {
-            if (root == null || !Files.exists(root)) {
-                continue;
-            }
-            try (var walk = Files.walk(root)) {
-                Optional<Path> found = walk
-                        .filter(p -> p.getFileName().toString().equals(filename))
-                        .findFirst();
-                if (found.isPresent()) {
-                    return found.get();
-                }
-            }
-        }
-        return null;
     }
 
     // ==================== HELPERS ====================

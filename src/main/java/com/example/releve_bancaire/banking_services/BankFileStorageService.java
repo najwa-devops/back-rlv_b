@@ -1,63 +1,36 @@
 package com.example.releve_bancaire.banking_services;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
 public class BankFileStorageService {
 
-    @Value("${banking.upload.dir:${UPLOAD_BANK_DIR:uploads_banking}}")
-    private String bankingBaseDir;
-
-    public String storeBankStatement(MultipartFile file) {
-        return storeInBase(file, bankingBaseDir);
-    }
-
-    private String storeInBase(MultipartFile file, String rootDir) {
+    public StoredBankFile storeBankStatement(MultipartFile file) {
         try {
-            LocalDate now = LocalDate.now();
+            String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "statement";
+            String sanitizedOriginalName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+            String generatedFilename = UUID.randomUUID() + "_" + sanitizedOriginalName;
+            String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
 
-            Path uploadPath = Paths.get(
-                    rootDir,
-                    "statements",
-                    String.valueOf(now.getYear()),
-                    String.format("%02d", now.getMonthValue())
-            );
-
-            Files.createDirectories(uploadPath);
-
-            String uniqueName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path target = uploadPath.resolve(uniqueName);
-
-            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-            // ON RETOURNE LE CHEMIN COMPLET
-            return target.toString();
-
+            return new StoredBankFile(
+                    generatedFilename,
+                    originalName,
+                    contentType,
+                    file.getSize(),
+                    file.getBytes());
         } catch (Exception e) {
-            throw new RuntimeException("Erreur stockage fichier", e);
+            throw new RuntimeException("Erreur stockage fichier en base", e);
         }
     }
 
-    public Path load(String fullPath) {
-        return Paths.get(fullPath);
+    public record StoredBankFile(
+            String filename,
+            String originalName,
+            String contentType,
+            long size,
+            byte[] data) {
     }
-
-    public Path getBaseDirForFiles() {
-        return Paths.get(bankingBaseDir, "statements");
-    }
-
-    public Path getBankBaseDirForFiles() {
-        return Paths.get(bankingBaseDir, "statements");
-    }
-
-
 }
