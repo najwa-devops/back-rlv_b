@@ -32,7 +32,7 @@ public class CptjournalJdbcRepository {
 
         jdbcTemplate.batchUpdate("""
                 INSERT INTO Cptjournal
-                    (Numero, ndosjrn, nmois, Mois, ncompte, ecriture, debit, credit, valider, datecompl, date, annee, mnt_rester)
+                    (Numero, ndosjrn, nmois, Mois, ncompt, ecriture, debit, credit, valider, datcompl, dat, annee, mnt_rester)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, new BatchPreparedStatementSetter() {
             @Override

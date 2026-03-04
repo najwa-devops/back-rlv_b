@@ -2,6 +2,8 @@ package com.example.releve_bancaire.accounting_services;
 
 import com.example.releve_bancaire.accounting_entity.AccountingEntry;
 import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
+import com.example.releve_bancaire.accounting_repository.CptjournalJdbcRepository;
+import com.example.releve_bancaire.accounting_repository.CptjournalSyncTrackerRepository;
 import com.example.releve_bancaire.banking_entity.BankStatement;
 import com.example.releve_bancaire.banking_entity.BankStatus;
 import com.example.releve_bancaire.banking_entity.BankTransaction;
@@ -30,10 +32,13 @@ public class ComptabilisationWorkflowService {
 
     private static final String DEFAULT_TX_COMPTE = "349700000";
     private static final String ACCOUNT_CODE_REGEX = "^\\d{9}$";
+    private static final String VALIDER_TRUE = "1";
 
     private final BankStatementRepository bankStatementRepository;
     private final BankTransactionRepository bankTransactionRepository;
     private final AccountingEntryRepository accountingEntryRepository;
+    private final CptjournalJdbcRepository cptjournalJdbcRepository;
+    private final CptjournalSyncTrackerRepository cptjournalSyncTrackerRepository;
 
     @Value("${accounting.default-journal:BQ}")
     private String defaultJournal;
@@ -135,6 +140,8 @@ public class ComptabilisationWorkflowService {
         }
 
         List<AccountingEntry> entries = new ArrayList<>(context.rows().size());
+        List<CptjournalJdbcRepository.CptjournalRow> cptjournalRows = new ArrayList<>(context.rows().size());
+        long cptjournalBaseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
         for (SimulatedEntry row : context.rows()) {
             AccountingEntry entry = new AccountingEntry();
             entry.setNumero(row.numero());
@@ -152,8 +159,29 @@ public class ComptabilisationWorkflowService {
             entry.setIsCounterpart(row.counterpart());
             entry.setBatchId(simulationId);
             entries.add(entry);
+
+            long numeroCptjournal = cptjournalBaseNumero + (row.numero() - 1L);
+            LocalDate dateOperation = row.dateOperation();
+            cptjournalRows.add(new CptjournalJdbcRepository.CptjournalRow(
+                    numeroCptjournal,
+                    context.journal(),
+                    context.nmois(),
+                    row.moisTexte(),
+                    row.ncompte(),
+                    row.libelle(),
+                    row.debit(),
+                    row.credit(),
+                    VALIDER_TRUE,
+                    dateOperation,
+                    dateOperation.getDayOfMonth(),
+                    dateOperation.getYear(),
+                    resolveMntRester(row.ncompte(), row.debit(), row.credit())));
         }
         accountingEntryRepository.saveAll(entries);
+        if (!cptjournalSyncTrackerRepository.isSynced(context.statementId())) {
+            cptjournalJdbcRepository.insertAll(cptjournalRows);
+            cptjournalSyncTrackerRepository.markSynced(context.statementId());
+        }
 
         BankStatement statement = bankStatementRepository.findById(context.statementId())
                 .orElseThrow(() -> new IllegalArgumentException("Releve introuvable."));
@@ -169,6 +197,57 @@ public class ComptabilisationWorkflowService {
 
         simulations.remove(simulationId);
         return new ConfirmationResult(simulationId, context.statementId(), entries.size(), statement.getStatus().name());
+    }
+
+    @Transactional
+    public int syncCptjournalFromExistingAccountingEntries(Long statementId) {
+        if (statementId == null) {
+            throw new IllegalArgumentException("statementId est obligatoire.");
+        }
+        if (cptjournalSyncTrackerRepository.isSynced(statementId)) {
+            return 0;
+        }
+
+        List<AccountingEntry> entries = accountingEntryRepository.findBySourceStatementIdOrderByNumeroAscIdAsc(statementId);
+        if (entries.isEmpty()) {
+            return 0;
+        }
+
+        long minNumero = entries.stream()
+                .map(AccountingEntry::getNumero)
+                .filter(n -> n != null)
+                .min(Long::compareTo)
+                .orElse(1L);
+        long baseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+
+        List<CptjournalJdbcRepository.CptjournalRow> rows = new ArrayList<>(entries.size());
+        for (AccountingEntry entry : entries) {
+            LocalDate date = entry.getDateComplete();
+            if (date == null) {
+                continue;
+            }
+            long numero = baseNumero + (entry.getNumero() - minNumero);
+            BigDecimal debit = entry.getDebit() == null ? BigDecimal.ZERO : entry.getDebit();
+            BigDecimal credit = entry.getCredit() == null ? BigDecimal.ZERO : entry.getCredit();
+            rows.add(new CptjournalJdbcRepository.CptjournalRow(
+                    numero,
+                    entry.getNdosjrn(),
+                    entry.getNmois(),
+                    entry.getMois(),
+                    entry.getNcompte(),
+                    entry.getEcriture(),
+                    debit,
+                    credit,
+                    VALIDER_TRUE,
+                    date,
+                    date.getDayOfMonth(),
+                    date.getYear(),
+                    resolveMntRester(entry.getNcompte(), debit, credit)));
+        }
+
+        cptjournalJdbcRepository.insertAll(rows);
+        cptjournalSyncTrackerRepository.markSynced(statementId);
+        return rows.size();
     }
 
     private int resolveMonth(BankStatement statement, List<BankTransaction> transactions) {
@@ -218,6 +297,20 @@ public class ComptabilisationWorkflowService {
             return tx.getTransactionIndex().longValue();
         }
         return fallbackNumero;
+    }
+
+    private BigDecimal resolveMntRester(String ncompte, BigDecimal debit, BigDecimal credit) {
+        if (ncompte == null) {
+            return null;
+        }
+        String value = ncompte.trim();
+        if (value.startsWith("4411")
+                || value.startsWith("342")
+                || value.startsWith("1481")
+                || value.startsWith("1486")) {
+            return debit.subtract(credit).abs();
+        }
+        return null;
     }
 
     private record SimulationContext(

@@ -1,5 +1,7 @@
 package com.example.releve_bancaire.banking_controller;
 
+import com.example.releve_bancaire.accounting_services.ComptabilisationWorkflowService;
+import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
 import com.example.releve_bancaire.banking_entity.BankStatement;
 import com.example.releve_bancaire.banking_entity.BankStatus;
 import com.example.releve_bancaire.banking_entity.BankTransaction;
@@ -46,8 +48,10 @@ public class BankStatementController {
 
     private final BankStatementRepository repository;
     private final BankTransactionRepository transactionRepository;
+    private final AccountingEntryRepository accountingEntryRepository;
     private final BankStatementProcessingService processingService;
     private final BankStatementValidatorService validatorService;
+    private final ComptabilisationWorkflowService comptabilisationWorkflowService;
     private final BankTransactionAccountLearningService accountLearningService;
     private final BankFileStorageService bankFileStorageService;
     private static final Pattern DUPLICATE_OF_PATTERN = Pattern.compile("DUPLIQUE_OF:(\\d+)");
@@ -328,19 +332,43 @@ public class BankStatementController {
                             String userId = request.getUpdatedBy() == null || request.getUpdatedBy().isBlank()
                                     ? "system"
                                     : request.getUpdatedBy();
-                            statement.markAsAccounted(userId);
+                            long existingEntries = accountingEntryRepository.countBySourceStatementId(id);
+                            if (statement.getStatus() == BankStatus.COMPTABILISE && existingEntries > 0) {
+                                int syncedRows = comptabilisationWorkflowService
+                                        .syncCptjournalFromExistingAccountingEntries(id);
+                                return ResponseEntity.ok(Map.of(
+                                        "message", syncedRows > 0
+                                                ? "Relevé déjà comptabilisé, synchronisation Cptjournal effectuée"
+                                                : "Relevé déjà comptabilisé",
+                                        "statement", toResponse(statement),
+                                        "insertedEntries", syncedRows));
+                            }
+
+                            ComptabilisationWorkflowService.SimulationResult simulation =
+                                    comptabilisationWorkflowService.simulate(id);
+                            ComptabilisationWorkflowService.ConfirmationResult confirmation =
+                                    comptabilisationWorkflowService.confirm(simulation.simulationId(), userId);
+                            BankStatement refreshed = repository.findById(id).orElse(statement);
+
+                            return ResponseEntity.ok(Map.of(
+                                    "message", "Statut mis à jour",
+                                    "statement", toResponse(refreshed),
+                                    "insertedEntries", confirmation.insertedEntries(),
+                                    "simulationId", confirmation.simulationId()));
                         } else {
                             statement.setStatus(requested);
                             if (requested != BankStatus.COMPTABILISE) {
                                 statement.setAccountedAt(null);
                                 statement.setAccountedBy(null);
                             }
+                            BankStatement saved = repository.save(statement);
+                            return ResponseEntity.ok(Map.of(
+                                    "message", "Statut mis à jour",
+                                    "statement", toResponse(saved)));
                         }
-                        BankStatement saved = repository.save(statement);
-                        return ResponseEntity.ok(Map.of(
-                                "message", "Statut mis à jour",
-                                "statement", toResponse(saved)));
                     } catch (IllegalStateException e) {
+                        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+                    } catch (IllegalArgumentException e) {
                         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
                     }
                 })
