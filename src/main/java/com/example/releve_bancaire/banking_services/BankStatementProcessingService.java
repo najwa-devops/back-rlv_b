@@ -54,6 +54,8 @@ public class BankStatementProcessingService {
 
     @Value("${banking.duplicate-detection-enabled:false}")
     private boolean duplicateDetectionEnabled;
+    @Value("${banking.storage.temporary-file-retention:true}")
+    private boolean temporaryFileRetention;
 
     private BankStatementProcessingService self;
 
@@ -284,6 +286,9 @@ public class BankStatementProcessingService {
                 compileValidationErrors(statement, balanceValidation, continuityValidation);
             }
 
+            // Stockage temporaire: supprimer le binaire source après extraction réussie.
+            purgeUploadedBinaryIfConfigured(statement);
+
             // 10. Sauvegarde finale
             log.info("💾 Sauvegarde finale");
             BankStatement saved = statementRepository.save(statement);
@@ -502,6 +507,16 @@ public class BankStatementProcessingService {
         statement.calculateTotalsFromTransactions();
         log.debug("Totaux calculés - Crédit: {}, Débit: {}",
                 statement.getTotalCredit(), statement.getTotalDebit());
+    }
+
+    private void purgeUploadedBinaryIfConfigured(BankStatement statement) {
+        if (!temporaryFileRetention || statement == null || statement.getFileData() == null) {
+            return;
+        }
+
+        statement.setFileData(null);
+        statement.setFilePath("TEMP_CLEARED");
+        log.info("🗑️ Fichier binaire supprimé (mode temporaire) pour relevé {}", statement.getId());
     }
 
     private void applyVerification(BankStatement statement) {
