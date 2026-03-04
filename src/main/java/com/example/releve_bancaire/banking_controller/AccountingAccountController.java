@@ -2,6 +2,7 @@ package com.example.releve_bancaire.banking_controller;
 
 import com.example.releve_bancaire.account_tier.Account;
 import com.example.releve_bancaire.repository.AccountDao;
+import com.example.releve_bancaire.banking_services.ExternalComptesCatalogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,21 +21,33 @@ import java.util.Map;
 public class AccountingAccountController {
 
     private final AccountDao accountDao;
+    private final ExternalComptesCatalogService externalComptesCatalogService;
 
     @GetMapping
     public ResponseEntity<?> list(@RequestParam(defaultValue = "true") boolean activeOnly) {
-        List<Account> accounts = activeOnly
-                ? accountDao.findByActiveTrueOrderByCodeAsc()
-                : accountDao.findAllByOrderByCodeAsc();
+        // Source active: table distante "Comptes" (numero, libelle) sur le serveur externe.
+        // Le paramètre activeOnly est conservé pour compatibilité API.
+        List<Account> accounts = externalComptesCatalogService.loadAccounts();
+
+        // Source locale historique (gardée commentée, ne pas supprimer):
+        // List<Account> accounts = activeOnly
+        //         ? accountDao.findByActiveTrueOrderByCodeAsc()
+        //         : accountDao.findAllByOrderByCodeAsc();
         return ResponseEntity.ok(Map.of("count", accounts.size(), "accounts", accounts));
     }
 
     @GetMapping("/options")
     public ResponseEntity<?> options() {
-        List<AccountOption> options = accountDao.findByActiveTrueOrderByCodeAsc()
+        List<AccountOption> options = externalComptesCatalogService.loadAccounts()
                 .stream()
                 .map(account -> new AccountOption(account.getCode(), account.getLibelle()))
                 .toList();
+
+        // Source locale historique (gardée commentée, ne pas supprimer):
+        // List<AccountOption> options = accountDao.findByActiveTrueOrderByCodeAsc()
+        //         .stream()
+        //         .map(account -> new AccountOption(account.getCode(), account.getLibelle()))
+        //         .toList();
 
         return ResponseEntity.ok(Map.of("count", options.size(), "accounts", options));
     }

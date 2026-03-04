@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "accounting_entry", indexes = {
-        @Index(name = "idx_acc_entry_journal_month_numero", columnList = "ndosjrn,nmois,numero", unique = true),
+        @Index(name = "idx_acc_entry_journal_month_numero", columnList = "ndosjrn,nmois,numero"),
         @Index(name = "idx_acc_entry_date_complete", columnList = "date_complete"),
         @Index(name = "idx_acc_entry_statement_tx", columnList = "source_statement_id,source_transaction_id")
 })

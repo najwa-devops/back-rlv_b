@@ -64,7 +64,7 @@ public class ComptabilisationWorkflowService {
         int nmois = resolveMonth(statement, transactions);
         String moisTexte = monthLabel(nmois);
         String nmoisTexte = String.format("%02d", nmois);
-        long numero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois) + 1;
+        long fallbackNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois) + 1;
 
         List<SimulatedEntry> rows = new ArrayList<>();
         for (BankTransaction tx : transactions) {
@@ -78,7 +78,10 @@ public class ComptabilisationWorkflowService {
             String libelle = tx.getLibelle() == null ? "" : tx.getLibelle();
             String contrepartie = sanitizeTransactionAccount(tx.getCompte());
 
-            long numeroMain = numero++;
+            long numeroMain = resolveTransactionNumero(tx, fallbackNumero);
+            if (tx.getTransactionIndex() == null || tx.getTransactionIndex() <= 0) {
+                fallbackNumero++;
+            }
             // 1ere ecriture: compte de la transaction choisi dans le detail du releve.
             rows.add(new SimulatedEntry(
                     numeroMain,
@@ -95,7 +98,7 @@ public class ComptabilisationWorkflowService {
 
             // 2eme ecriture (contrepartie): compte principal provenant du XML/config directeur.
             rows.add(new SimulatedEntry(
-                    numero++,
+                    numeroMain,
                     moisTexte,
                     nmoisTexte,
                     dateOperation,
@@ -208,6 +211,13 @@ public class ComptabilisationWorkflowService {
         }
         String value = account.trim();
         return value.matches(ACCOUNT_CODE_REGEX) ? value : DEFAULT_TX_COMPTE;
+    }
+
+    private long resolveTransactionNumero(BankTransaction tx, long fallbackNumero) {
+        if (tx.getTransactionIndex() != null && tx.getTransactionIndex() > 0) {
+            return tx.getTransactionIndex().longValue();
+        }
+        return fallbackNumero;
     }
 
     private record SimulationContext(
