@@ -196,7 +196,13 @@ public class ComptabilisationWorkflowService {
         bankStatementRepository.save(statement);
 
         simulations.remove(simulationId);
-        return new ConfirmationResult(simulationId, context.statementId(), entries.size(), statement.getStatus().name());
+        return new ConfirmationResult(
+                simulationId,
+                context.statementId(),
+                entries.size(),
+                statement.getStatus().name(),
+                statement.getAccountedAt(),
+                statement.getAccountedBy());
     }
 
     @Transactional
@@ -348,6 +354,8 @@ public class ComptabilisationWorkflowService {
             String simulationId,
             Long statementId,
             int insertedEntries,
-            String statementStatus) {
+            String statementStatus,
+            LocalDateTime accountedAt,
+            String accountedBy) {
     }
 }
