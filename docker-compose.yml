@@ -1,20 +1,19 @@
 services:
-  mariadb:
-    image: mariadb:11
-    container_name: rlvb-mariadb
+  mysql:
+    image: mysql:8.4
+    container_name: rlvb-mysql
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_NAME:-rlvb_db}
-      MARIADB_USER: ${DB_USER:-nabil1}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-Nabilkarim1}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
-      MARIADB_ROOT_HOST: "%"
+      MYSQL_DATABASE: ${DB_NAME:-rlvb_db}
+      MYSQL_USER: ${DB_USER:-nabil1}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Nabilkarim1}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
     ports:
       - "3306:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -28,10 +27,10 @@ services:
     ports:
       - "${SERVER_PORT:-8096}:${SERVER_PORT:-8096}"
     environment:
-      APP_DB_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-rlvb_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      APP_DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-rlvb_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       APP_DB_USERNAME: ${APP_DB_USERNAME:-nabil1}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:-Nabilkarim1}
-      EXTERNAL_COMPTES_JDBC_URL: ${EXTERNAL_COMPTES_JDBC_URL:-jdbc:mariadb://mariadb:3306/${DB_NAME:-rlvb_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      EXTERNAL_COMPTES_JDBC_URL: ${EXTERNAL_COMPTES_JDBC_URL:-jdbc:mysql://mysql:3306/${DB_NAME:-rlvb_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
       EXTERNAL_COMPTES_USERNAME: ${EXTERNAL_COMPTES_USERNAME:-nabil1}
       EXTERNAL_COMPTES_PASSWORD: ${EXTERNAL_COMPTES_PASSWORD:-Nabilkarim1}
       SERVER_PORT: ${SERVER_PORT:-8096}
@@ -49,7 +48,7 @@ services:
     volumes:
       - ./logs:/app/logs
     depends_on:
-      mariadb:
+      mysql:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl --fail --silent http://localhost:$${SERVER_PORT}/actuator/health || exit 1"]
@@ -89,5 +88,5 @@ services:
       start_period: 40s
 
 volumes:
-  mariadb_data:
+  mysql_data:
     driver: local

@@ -19,7 +19,7 @@ public class ExternalComptesCatalogService {
     private static final Pattern SIMPLE_IDENTIFIER = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
     private static final Pattern NINE_DIGITS = Pattern.compile("^\\d{9}$");
 
-    @Value("${external.comptes.jdbc-url:jdbc:mariadb://172.20.1.11:3306/rlvb_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
+    @Value("${external.comptes.jdbc-url:jdbc:mysql://172.20.1.11:3306/rlvb_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
     private String jdbcUrl;
 
     @Value("${external.comptes.username:root}")
