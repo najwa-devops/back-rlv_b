@@ -2,17 +2,12 @@ package com.example.releve_bancaire.controller.accounting;
 
 import com.example.releve_bancaire.entity.accounting.AccountingEntry;
 import com.example.releve_bancaire.entity.auth.Dossier;
-import com.example.releve_bancaire.entity.auth.UserRole;
 import com.example.releve_bancaire.entity.dynamic.DynamicInvoice;
 import com.example.releve_bancaire.entity.invoice.InvoiceStatus;
 import com.example.releve_bancaire.repository.AccountingEntryDao;
 import com.example.releve_bancaire.repository.DossierDao;
 import com.example.releve_bancaire.repository.DynamicInvoiceDao;
-import com.example.releve_bancaire.security.RequireRole;
 import com.example.releve_bancaire.utils.InvoiceTypeDetector;
-import com.example.releve_bancaire.servises.auth.AuthService;
-import com.example.releve_bancaire.servises.auth.SessionKeys;
-import com.example.releve_bancaire.servises.auth.SessionUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -41,20 +35,13 @@ public class AccountingJournalController {
     private final AccountingEntryDao accountingEntryDao;
     private final DynamicInvoiceDao dynamicInvoiceDao;
     private final DossierDao dossierDao;
-    private final AuthService authService;
 
     @GetMapping("/entries")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> listEntries(
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        Long resolvedDossierId = resolveDossierId(dossierId);
         if (resolvedDossierId == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
-        }
-        if (requireDossierForUser(sessionUser, resolvedDossierId) == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
         }
 
         List<AccountingEntry> entries = accountingEntryDao
@@ -67,18 +54,15 @@ public class AccountingJournalController {
     }
 
     @GetMapping("/defaults")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> getJournalDefaults(
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        Long resolvedDossierId = resolveDossierId(dossierId);
         if (resolvedDossierId == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
         }
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
+        Dossier dossier = dossierDao.findById(resolvedDossierId).orElse(null);
         if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "dossier_not_found"));
         }
 
         return ResponseEntity.ok(Map.of(
@@ -88,19 +72,16 @@ public class AccountingJournalController {
     }
 
     @PutMapping("/defaults")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> updateJournalDefaults(
             @RequestParam(value = "dossierId", required = false) Long dossierId,
-            @RequestBody Map<String, Object> body,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
+            @RequestBody Map<String, Object> body) {
+        Long resolvedDossierId = resolveDossierId(dossierId);
         if (resolvedDossierId == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
         }
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
+        Dossier dossier = dossierDao.findById(resolvedDossierId).orElse(null);
         if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "dossier_not_found"));
         }
 
         String purchaseJournal = trimToNull(body != null ? body.get("purchaseJournal") : null);
@@ -118,32 +99,17 @@ public class AccountingJournalController {
 
     @PostMapping("/entries/from-invoice/{id}")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> accountInvoice(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
-        }
-
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
-        if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         Optional<DynamicInvoice> invoiceOpt = dynamicInvoiceDao.findById(id);
         if (invoiceOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         DynamicInvoice invoice = invoiceOpt.get();
-        if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "forbidden"));
-        }
+        Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
+        Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
         if (invoice.getStatus() != InvoiceStatus.VALIDATED) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -165,12 +131,12 @@ public class AccountingJournalController {
                     "details", inputs.getErrors()));
         }
 
-        List<AccountingEntry> entries = buildEntries(invoice, inputs, sessionUser);
+        List<AccountingEntry> entries = buildEntries(invoice, inputs);
         List<AccountingEntry> saved = accountingEntryDao.saveAll(entries);
 
         invoice.setAccounted(true);
         invoice.setAccountedAt(java.time.LocalDateTime.now());
-        invoice.setAccountedBy(sessionUser != null ? sessionUser.username() : "system");
+        invoice.setAccountedBy("system");
         dynamicInvoiceDao.save(invoice);
 
         return ResponseEntity.ok(Map.of(
@@ -180,32 +146,17 @@ public class AccountingJournalController {
 
     @PostMapping("/entries/rebuild/{id}")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> rebuildEntries(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
-        }
-
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
-        if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         Optional<DynamicInvoice> invoiceOpt = dynamicInvoiceDao.findById(id);
         if (invoiceOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         DynamicInvoice invoice = invoiceOpt.get();
-        if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "forbidden"));
-        }
+        Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
+        Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
         if (invoice.getStatus() != InvoiceStatus.VALIDATED) {
             return ResponseEntity.badRequest().body(Map.of(
@@ -225,12 +176,12 @@ public class AccountingJournalController {
                     "details", inputs.getErrors()));
         }
 
-        List<AccountingEntry> entries = buildEntries(invoice, inputs, sessionUser);
+        List<AccountingEntry> entries = buildEntries(invoice, inputs);
         List<AccountingEntry> saved = accountingEntryDao.saveAll(entries);
 
         invoice.setAccounted(true);
         invoice.setAccountedAt(java.time.LocalDateTime.now());
-        invoice.setAccountedBy(sessionUser != null ? sessionUser.username() : "system");
+        invoice.setAccountedBy("system");
         dynamicInvoiceDao.save(invoice);
 
         return ResponseEntity.ok(Map.of(
@@ -238,11 +189,8 @@ public class AccountingJournalController {
                 "entries", toResponseWithInvoiceCounter(saved)));
     }
 
-    private List<AccountingEntry> buildEntries(DynamicInvoice invoice, AccountingInputs inputs,
-            SessionUser sessionUser) {
+    private List<AccountingEntry> buildEntries(DynamicInvoice invoice, AccountingInputs inputs) {
         List<AccountingEntry> entries = new ArrayList<>();
-        String createdBy = sessionUser != null ? sessionUser.username() : "system";
-
         boolean isAvoir = inputs.isAvoir;
 
         if (inputs.isMultiTvaScenario()) {
@@ -262,7 +210,7 @@ public class AccountingJournalController {
                         .debit(isAvoir ? BigDecimal.ZERO : htLine)
                         .credit(isAvoir ? htLine : BigDecimal.ZERO)
                         .label("HT " + (i + 1))
-                        .createdBy(createdBy)
+                        .createdBy("system")
                         .build());
             }
 
@@ -282,7 +230,7 @@ public class AccountingJournalController {
                         .debit(isAvoir ? BigDecimal.ZERO : tvaLine)
                         .credit(isAvoir ? tvaLine : BigDecimal.ZERO)
                         .label("TVA " + (i + 1))
-                        .createdBy(createdBy)
+                        .createdBy("system")
                         .build());
             }
         } else {
@@ -297,7 +245,7 @@ public class AccountingJournalController {
                     .debit(isAvoir ? BigDecimal.ZERO : inputs.amountHT)
                     .credit(isAvoir ? inputs.amountHT : BigDecimal.ZERO)
                     .label("HT")
-                    .createdBy(createdBy)
+                    .createdBy("system")
                     .build());
 
             if (inputs.tva != null && inputs.tva.compareTo(BigDecimal.ZERO) > 0) {
@@ -312,7 +260,7 @@ public class AccountingJournalController {
                         .debit(isAvoir ? BigDecimal.ZERO : inputs.tva)
                         .credit(isAvoir ? inputs.tva : BigDecimal.ZERO)
                         .label("TVA")
-                        .createdBy(createdBy)
+                        .createdBy("system")
                         .build());
             }
         }
@@ -328,7 +276,7 @@ public class AccountingJournalController {
                 .debit(isAvoir ? inputs.amountTTC : BigDecimal.ZERO)
                 .credit(isAvoir ? BigDecimal.ZERO : inputs.amountTTC)
                 .label("TTC")
-                .createdBy(createdBy)
+                .createdBy("system")
                 .build());
 
         return entries;
@@ -379,12 +327,10 @@ public class AccountingJournalController {
                 inputs.tva = summedTva;
             }
         } else {
-            // Multi-lines are optional: ignore partial HT2/TVA2 data if incomplete.
             inputs.htLines.clear();
             inputs.tvaLines.clear();
         }
 
-        // Force balanced journal entries: TTC must equal HT + TVA.
         if (inputs.amountHT != null && inputs.amountHT.compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal computedTtc = inputs.amountHT.add(inputs.tva != null ? inputs.tva : BigDecimal.ZERO)
                     .setScale(2, RoundingMode.HALF_UP);
@@ -411,6 +357,16 @@ public class AccountingJournalController {
 
         inputs.validate();
         return inputs;
+    }
+
+    private Long resolveDossierId(Long dossierId) {
+        if (dossierId != null) {
+            return dossierId;
+        }
+        return dossierDao.findAll().stream()
+                .findFirst()
+                .map(Dossier::getId)
+                .orElse(null);
     }
 
     private BigDecimal toMoney(Double value) {
@@ -591,10 +547,6 @@ public class AccountingJournalController {
         return response;
     }
 
-    private Map<String, Object> toResponse(AccountingEntry entry) {
-        return toResponse(entry, null);
-    }
-
     private List<Map<String, Object>> toResponseWithInvoiceCounter(List<AccountingEntry> entries) {
         List<Map<String, Object>> response = new ArrayList<>();
         if (entries == null || entries.isEmpty()) {
@@ -616,102 +568,6 @@ public class AccountingJournalController {
             response.add(toResponse(entry, acIndex));
         }
         return response;
-    }
-
-    private boolean canAccessInvoiceInDossier(SessionUser sessionUser, DynamicInvoice invoice, Long dossierId) {
-        if (sessionUser == null || invoice == null || dossierId == null) {
-            return false;
-        }
-        Long invoiceDossierId = invoice.getDossierId();
-        if (invoiceDossierId == null || !dossierId.equals(invoiceDossierId)) {
-            return false;
-        }
-        return canAccessInvoice(sessionUser, invoice);
-    }
-
-    private boolean canAccessInvoice(SessionUser sessionUser, DynamicInvoice invoice) {
-        if (sessionUser == null || invoice == null) {
-            return false;
-        }
-        if (sessionUser.isAdmin()) {
-            return true;
-        }
-        Long dossierId = invoice.getDossierId();
-        if (dossierId == null) {
-            return false;
-        }
-        if (sessionUser.isComptable()) {
-            return dossierDao.findByIdAndComptableId(dossierId, sessionUser.id()).isPresent();
-        }
-        if (sessionUser.isClient()) {
-            return dossierDao.findByIdAndClientId(dossierId, sessionUser.id()).isPresent();
-        }
-        return false;
-    }
-
-    private Dossier requireDossierForUser(SessionUser sessionUser, Long dossierId) {
-        if (sessionUser == null || dossierId == null) {
-            return null;
-        }
-        if (sessionUser.isAdmin()) {
-            return dossierDao.findById(dossierId).orElse(null);
-        }
-        if (sessionUser.isComptable()) {
-            return dossierDao.findByIdAndComptableId(dossierId, sessionUser.id()).orElse(null);
-        }
-        if (sessionUser.isClient()) {
-            return dossierDao.findByIdAndClientId(dossierId, sessionUser.id()).orElse(null);
-        }
-        return null;
-    }
-
-    private Long resolveDossierId(SessionUser sessionUser, Long dossierId, HttpSession session) {
-        if (dossierId != null) {
-            return dossierId;
-        }
-        if (sessionUser == null || session == null) {
-            return null;
-        }
-        Object rawId = session.getAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-        if (rawId == null) {
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        Long resolvedId;
-        try {
-            resolvedId = Long.valueOf(rawId.toString());
-        } catch (NumberFormatException ex) {
-            session.removeAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        if (requireDossierForUser(sessionUser, resolvedId) == null) {
-            session.removeAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        return resolvedId;
     }
 
     private static class AccountingInputs {
@@ -755,10 +611,7 @@ public class AccountingJournalController {
             if (amountTTC == null || amountTTC.compareTo(BigDecimal.ZERO) <= 0) {
                 errors.add("Montant TTC invalide");
             }
-            if ((tva == null || tva.compareTo(BigDecimal.ZERO) <= 0)
-                    && (tvaAccount != null && !tvaAccount.isBlank())) {
-                // TVA compte present mais TVA nulle -> ok, on laisse
-            } else if (tva != null && tva.compareTo(BigDecimal.ZERO) > 0
+            if (tva != null && tva.compareTo(BigDecimal.ZERO) > 0
                     && (tvaAccount == null || tvaAccount.isBlank())) {
                 errors.add("Compte TVA manquant");
             }

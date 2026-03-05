@@ -3,6 +3,7 @@ services:
     image: mariadb:11
     container_name: rlvb-mariadb
     restart: unless-stopped
+    command: ["--max_allowed_packet=64M"]
     environment:
       MARIADB_DATABASE: ${DB_NAME:-rlvb_db}
       MARIADB_USER: ${DB_USER:-nabil1}

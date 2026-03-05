@@ -1,5 +1,7 @@
 package com.example.releve_bancaire.config;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -7,17 +9,31 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
+@Slf4j
 public class CorsConfig {
+
+    @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:3001,http://localhost:3022}")
+    private String allowedOrigins;
 
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Autoriser toutes les origines (en dev)
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001",
-                "http://127.0.0.1:3000", "http://172.20.1.3", "http://172.20.1.3:3000"));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+
+        // With credentials=true, wildcard origins are invalid in allowedOrigins.
+        if (origins.contains("*")) {
+            log.warn("cors.allowed.origins contains '*': using allowedOriginPatterns instead.");
+            config.setAllowedOriginPatterns(origins);
+        } else {
+            config.setAllowedOrigins(origins);
+        }
 
         // Autoriser toutes les methodes HTTP
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));

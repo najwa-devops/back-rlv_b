@@ -2,7 +2,6 @@ package com.example.releve_bancaire.controller.dynamic;
 
 import com.example.releve_bancaire.dto.account_tier.TierDto;
 import com.example.releve_bancaire.entity.auth.Dossier;
-import com.example.releve_bancaire.entity.auth.UserRole;
 import com.example.releve_bancaire.entity.dynamic.DynamicInvoice;
 import com.example.releve_bancaire.entity.account_tier.Tier;
 import com.example.releve_bancaire.entity.invoice.InvoiceStatus;
@@ -12,11 +11,7 @@ import com.example.releve_bancaire.repository.DynamicInvoiceDao;
 import com.example.releve_bancaire.repository.FieldLearningDataDao;
 import com.example.releve_bancaire.servises.FileStorageService;
 import com.example.releve_bancaire.servises.account_tier.TierService;
-import com.example.releve_bancaire.servises.auth.AuthService;
-import com.example.releve_bancaire.servises.auth.SessionKeys;
-import com.example.releve_bancaire.servises.auth.SessionUser;
 import com.example.releve_bancaire.servises.dynamic.DynamicInvoiceProcessingService;
-import com.example.releve_bancaire.security.RequireRole;
 import com.example.releve_bancaire.utils.InvoiceTypeDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpSession;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -46,36 +40,19 @@ public class DynamicInvoiceController {
     private final DynamicInvoiceProcessingService processingService;
     private final FileStorageService fileStorageService;
     private final TierService tierService;
-    private final AuthService authService;
     private final DossierDao dossierDao;
     private final AccountingEntryDao accountingEntryDao;
     private final FieldLearningDataDao fieldLearningDataDao;
 
     @PostMapping("/upload")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> uploadAndProcess(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         log.info("Upload fichier: {}", file.getOriginalFilename());
 
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
-        if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "dossier_forbidden"));
-        }
+        Long resolvedDossierId = resolveDossierId(dossierId);
+        Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
         try {
             if (file.isEmpty()) {
@@ -89,13 +66,7 @@ public class DynamicInvoiceController {
                         "supportedTypes", List.of("PDF", "JPG", "JPEG", "PNG")));
             }
 
-            DynamicInvoice processed;
-            if (sessionUser.isClient()) {
-                processed = createUploadOnlyInvoice(file);
-            } else {
-                // CORRECTION: Passer le MultipartFile directement
-                processed = processingService.processInvoice(file, resolvedDossierId);
-            }
+            DynamicInvoice processed = processingService.processInvoice(file, resolvedDossierId);
 
             if (dossier != null) {
                 processed.setDossier(dossier);
@@ -113,30 +84,14 @@ public class DynamicInvoiceController {
     }
 
     @PostMapping("/upload/batch")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> uploadAndProcessBatch(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         int count = files != null ? files.length : 0;
         log.info("Upload batch: {} fichiers", count);
 
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-        Dossier dossier = requireDossierForUser(sessionUser, resolvedDossierId);
-        if (dossier == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "dossier_forbidden"));
-        }
+        Long resolvedDossierId = resolveDossierId(dossierId);
+        Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
         if (files == null || files.length == 0) {
             return ResponseEntity.badRequest().body(Map.of("error", "Aucun fichier fourni"));
@@ -166,9 +121,7 @@ public class DynamicInvoiceController {
                     continue;
                 }
 
-                DynamicInvoice processed = sessionUser.isClient()
-                        ? createUploadOnlyInvoice(file)
-                        : processingService.processInvoice(file, resolvedDossierId);
+                DynamicInvoice processed = processingService.processInvoice(file, resolvedDossierId);
                 if (dossier != null) {
                     processed.setDossier(dossier);
                     processed.setDossierId(dossier.getId());
@@ -195,26 +148,12 @@ public class DynamicInvoiceController {
     }
 
     @PostMapping("/{id}/process")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> reprocess(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         log.info("Retraitement facture: {}", id);
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
                     try {
                         DynamicInvoice processed = processingService.reprocessExistingInvoice(invoice);
                         return ResponseEntity.ok(toResponse(processed));
@@ -228,58 +167,34 @@ public class DynamicInvoiceController {
     }
 
     @GetMapping("/{id}")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> getById(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         return dynamicInvoiceDao.findById(id)
-                .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
-                    return ResponseEntity.ok(toDetailedResponse(invoice));
-                })
+                .map(invoice -> ResponseEntity.ok(toDetailedResponse(invoice)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> list(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long templateId,
             @RequestParam(value = "dossierId", required = false) Long dossierId,
-            @RequestParam(defaultValue = "50") int limit,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "dossier_required"));
-        }
-        if (requireDossierForUser(sessionUser, dossierId) == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "dossier_forbidden"));
-        }
+            @RequestParam(defaultValue = "50") int limit) {
+        Long resolvedDossierId = resolveDossierId(dossierId);
 
         List<DynamicInvoice> invoices;
-        if (status != null) {
-            InvoiceStatus invoiceStatus = InvoiceStatus.valueOf(status.toUpperCase());
-            invoices = dynamicInvoiceDao.findByStatusAndDossierIdOrderByCreatedAtDesc(invoiceStatus, dossierId);
-        } else if (templateId != null) {
-            invoices = dynamicInvoiceDao.findByTemplateIdAndDossierIdOrderByCreatedAtDesc(templateId, dossierId);
+        if (resolvedDossierId != null) {
+            if (status != null) {
+                InvoiceStatus invoiceStatus = InvoiceStatus.valueOf(status.toUpperCase());
+                invoices = dynamicInvoiceDao.findByStatusAndDossierIdOrderByCreatedAtDesc(invoiceStatus, resolvedDossierId);
+            } else if (templateId != null) {
+                invoices = dynamicInvoiceDao.findByTemplateIdAndDossierIdOrderByCreatedAtDesc(templateId, resolvedDossierId);
+            } else {
+                invoices = dynamicInvoiceDao.findByDossierIdOrderByCreatedAtDesc(resolvedDossierId);
+            }
         } else {
-            invoices = dynamicInvoiceDao.findByDossierIdOrderByCreatedAtDesc(dossierId);
+            invoices = dynamicInvoiceDao.findAll();
         }
 
         List<Map<String, Object>> response = invoices.stream()
@@ -294,31 +209,12 @@ public class DynamicInvoiceController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> delete(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         log.info("Suppression facture: {}", id);
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
-                    if (sessionUser != null && sessionUser.isClient()
-                            && Boolean.TRUE.equals(invoice.getClientValidated())) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "client_validated"));
-                    }
                     String filePath = invoice.getFilePath();
                     try {
                         accountingEntryDao.deleteByInvoiceId(invoice.getId());
@@ -348,27 +244,13 @@ public class DynamicInvoiceController {
     }
 
     @PutMapping("/{id}/fields")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> updateFields(
             @PathVariable Long id,
             @RequestBody Map<String, Object> fields,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         log.info("Modification champs facture {}: {}", id, fields.keySet());
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
                     if (!invoice.isModifiable()) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(Map.of("error", "Facture validee, modification impossible"));
@@ -393,28 +275,15 @@ public class DynamicInvoiceController {
     }
 
     @PostMapping("/{id}/validate")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> validate(
             @PathVariable Long id,
             @RequestParam(required = false) String userId,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-        String validator = sessionUser != null ? sessionUser.username() : (userId != null ? userId : "system");
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        String validator = userId != null ? userId : "system";
         log.info("Validation facture {} par {}", id, validator);
 
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
                     if (invoice.getStatus() == InvoiceStatus.VALIDATED) {
                         return ResponseEntity.ok(Map.of(
                                 "message", "Facture deja validee",
@@ -440,25 +309,11 @@ public class DynamicInvoiceController {
 
     @PostMapping("/{id}/client-validate")
     @Transactional
-    @RequireRole({ UserRole.CLIENT })
     public ResponseEntity<?> clientValidate(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
                     if (Boolean.TRUE.equals(invoice.getClientValidated())) {
                         return ResponseEntity.ok(Map.of(
                                 "message", "Facture deja validee par le client",
@@ -467,7 +322,7 @@ public class DynamicInvoiceController {
 
                     invoice.setClientValidated(true);
                     invoice.setClientValidatedAt(java.time.LocalDateTime.now());
-                    invoice.setClientValidatedBy(sessionUser != null ? sessionUser.username() : "client");
+                    invoice.setClientValidatedBy("client");
                     DynamicInvoice saved = dynamicInvoiceDao.save(invoice);
 
                     return ResponseEntity.ok(Map.of(
@@ -480,22 +335,9 @@ public class DynamicInvoiceController {
     // ==================== BULK ACTIONS ====================
 
     @PostMapping("/bulk/process")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> bulkProcess(
             @RequestBody Map<String, Object> body,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         List<Long> ids = parseIds(body.get("ids"));
         if (ids.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "ids_required"));
@@ -515,14 +357,7 @@ public class DynamicInvoiceController {
                     results.add(item);
                     continue;
                 }
-                DynamicInvoice invoice = invoiceOpt.get();
-                if (!canAccessInvoiceInDossier(sessionUser, invoice, dossierId)) {
-                    item.put("status", "error");
-                    item.put("error", "forbidden");
-                    results.add(item);
-                    continue;
-                }
-                DynamicInvoice processed = processingService.reprocessExistingInvoice(invoice);
+                DynamicInvoice processed = processingService.reprocessExistingInvoice(invoiceOpt.get());
                 item.put("status", "success");
                 item.put("invoice", toResponse(processed));
                 results.add(item);
@@ -544,31 +379,16 @@ public class DynamicInvoiceController {
     }
 
     @PostMapping("/bulk/validate")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> bulkValidate(
             @RequestBody Map<String, Object> body,
             @RequestParam(required = false) String userId,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         List<Long> ids = parseIds(body.get("ids"));
         if (ids.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "ids_required"));
         }
 
-        String validator = sessionUser.username() != null
-                ? sessionUser.username()
-                : (userId != null ? userId : "system");
+        String validator = userId != null ? userId : "system";
 
         List<Map<String, Object>> results = new ArrayList<>();
         int successCount = 0;
@@ -585,12 +405,6 @@ public class DynamicInvoiceController {
                     continue;
                 }
                 DynamicInvoice invoice = invoiceOpt.get();
-                if (!canAccessInvoiceInDossier(sessionUser, invoice, dossierId)) {
-                    item.put("status", "error");
-                    item.put("error", "forbidden");
-                    results.add(item);
-                    continue;
-                }
                 if (invoice.getStatus() == InvoiceStatus.VALIDATED) {
                     item.put("status", "skipped");
                     item.put("message", "already_validated");
@@ -627,22 +441,9 @@ public class DynamicInvoiceController {
 
     @PostMapping("/bulk/delete")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> bulkDelete(
             @RequestBody Map<String, Object> body,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         List<Long> ids = parseIds(body.get("ids"));
         if (ids.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "ids_required"));
@@ -663,27 +464,17 @@ public class DynamicInvoiceController {
                     continue;
                 }
                 DynamicInvoice invoice = invoiceOpt.get();
-                if (!canAccessInvoiceInDossier(sessionUser, invoice, dossierId)) {
-                    item.put("status", "error");
-                    item.put("error", "forbidden");
-                    results.add(item);
-                    continue;
-                }
                 String filePath = invoice.getFilePath();
-                if (filePath == null || filePath.isBlank()) {
-                    item.put("status", "error");
-                    item.put("error", "file_missing");
-                    results.add(item);
-                    continue;
-                }
 
                 dynamicInvoiceDao.delete(invoice);
 
-                try {
-                    Files.deleteIfExists(Path.of(filePath));
-                } catch (Exception e) {
-                    log.warn("Facture {} supprimee en base, mais fichier non supprime: {} ({})",
-                            id, filePath, e.getMessage());
+                if (filePath != null && !filePath.isBlank()) {
+                    try {
+                        Files.deleteIfExists(Path.of(filePath));
+                    } catch (Exception e) {
+                        log.warn("Facture {} supprimee en base, mais fichier non supprime: {} ({})",
+                                id, filePath, e.getMessage());
+                    }
                 }
 
                 item.put("status", "success");
@@ -705,33 +496,13 @@ public class DynamicInvoiceController {
                 "results", results));
     }
 
-    // ==================== NOUVEAU: GET SIGNATURES DISPONIBLES ====================
-
-    /**
-     * Récupère les signatures disponibles pour créer un template
-     * GET /api/dynamic-invoices/{id}/available-signatures
-     */
     @GetMapping("/{id}/available-signatures")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> getAvailableSignatures(
             @PathVariable Long id,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         log.info("GET /api/dynamic-invoices/{}/available-signatures", id);
-
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        Long resolvedDossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (resolvedDossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
         return dynamicInvoiceDao.findById(id)
                 .map(invoice -> {
-                    if (!canAccessInvoiceInDossier(sessionUser, invoice, resolvedDossierId)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "forbidden"));
-                    }
                     List<Map<String, Object>> signatures = new ArrayList<>();
 
                     Map<String, Object> fieldsData = invoice.getFieldsData();
@@ -746,7 +517,6 @@ public class DynamicInvoiceController {
                     String rcNumber = getStringValue(fieldsData, "rcNumber");
                     String supplier = getStringValue(fieldsData, "supplier");
 
-                    // Signature IF (prioritaire)
                     if (ifNumber != null && !ifNumber.isBlank()) {
                         signatures.add(Map.of(
                                 "type", "IF",
@@ -756,7 +526,6 @@ public class DynamicInvoiceController {
                                 "reason", "Identifiant unique du fournisseur (recommandé)"));
                     }
 
-                    // Signature ICE
                     if (ice != null && !ice.isBlank()) {
                         signatures.add(Map.of(
                                 "type", "ICE",
@@ -766,7 +535,6 @@ public class DynamicInvoiceController {
                                 "reason", "Peut apparaître plusieurs fois (client + fournisseur)"));
                     }
 
-                    // Signature RC
                     if (rcNumber != null && !rcNumber.isBlank()) {
                         signatures.add(Map.of(
                                 "type", "RC",
@@ -793,114 +561,52 @@ public class DynamicInvoiceController {
     }
 
     @GetMapping("/stats")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> stats(
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        SessionUser sessionUser = authService.requireSessionUser(session);
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        Long resolvedDossierId = resolveDossierId(dossierId);
         Map<String, Object> stats = new LinkedHashMap<>();
 
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized"));
-        }
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-        if (requireDossierForUser(sessionUser, dossierId) == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "dossier_forbidden"));
-        }
+        if (resolvedDossierId != null) {
+            stats.put("total", dynamicInvoiceDao.countByDossierId(resolvedDossierId));
+            stats.put("pending", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.PENDING, resolvedDossierId));
+            stats.put("processing", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.PROCESSING, resolvedDossierId));
+            stats.put("treated", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.TREATED, resolvedDossierId));
+            stats.put("readyToValidate", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.READY_TO_VALIDATE, resolvedDossierId));
+            stats.put("validated", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.VALIDATED, resolvedDossierId));
+            stats.put("error", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.ERROR, resolvedDossierId));
 
-        boolean clientValidatedOnly = sessionUser.isClient();
-
-        if (clientValidatedOnly) {
-            stats.put("total", dynamicInvoiceDao.countByDossierIdAndClientValidatedTrue(dossierId));
-            stats.put("pending",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.PENDING,
-                            dossierId));
-            stats.put("processing",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.PROCESSING,
-                            dossierId));
-            stats.put("treated",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.TREATED,
-                            dossierId));
-            stats.put("readyToValidate",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.READY_TO_VALIDATE,
-                            dossierId));
-            stats.put("validated",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.VALIDATED,
-                            dossierId));
-            stats.put("error",
-                    dynamicInvoiceDao.countByStatusAndDossierIdAndClientValidatedTrue(InvoiceStatus.ERROR, dossierId));
+            List<DynamicInvoice> lowConfidence = dynamicInvoiceDao.findLowConfidenceByDossierId(0.7, resolvedDossierId);
+            stats.put("lowConfidenceCount", lowConfidence.size());
         } else {
-            stats.put("total", dynamicInvoiceDao.countByDossierId(dossierId));
-            stats.put("pending", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.PENDING, dossierId));
-            stats.put("processing", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.PROCESSING, dossierId));
-            stats.put("treated", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.TREATED, dossierId));
-            stats.put("readyToValidate",
-                    dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.READY_TO_VALIDATE, dossierId));
-            stats.put("validated", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.VALIDATED, dossierId));
-            stats.put("error", dynamicInvoiceDao.countByStatusAndDossierId(InvoiceStatus.ERROR, dossierId));
+            stats.put("total", dynamicInvoiceDao.count());
+            stats.put("pending", 0);
+            stats.put("processing", 0);
+            stats.put("treated", 0);
+            stats.put("readyToValidate", 0);
+            stats.put("validated", 0);
+            stats.put("error", 0);
+            stats.put("lowConfidenceCount", 0);
         }
-
-        List<DynamicInvoice> lowConfidence = clientValidatedOnly
-                ? dynamicInvoiceDao.findLowConfidenceByDossierIdClientValidated(0.7, dossierId)
-                : dynamicInvoiceDao.findLowConfidenceByDossierId(0.7, dossierId);
-        stats.put("lowConfidenceCount", lowConfidence.size());
 
         return ResponseEntity.ok(stats);
     }
 
     @GetMapping("/files/{filename}")
     @CrossOrigin("*")
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE, UserRole.CLIENT })
     public ResponseEntity<?> getFile(
             @PathVariable String filename,
             @RequestParam(required = false) Long invoiceId,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
-        log.debug("Requ?te de fichier re?ue pour: {}", filename);
-        SessionUser sessionUser = authService.requireSessionUser(session);
-
-        dossierId = resolveDossierId(sessionUser, dossierId, session);
-        if (dossierId == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "dossier_required"));
-        }
-        if (sessionUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        if (invoiceId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        Optional<DynamicInvoice> invoiceOpt = dynamicInvoiceDao.findById(invoiceId);
-        if (invoiceOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        DynamicInvoice invoice = invoiceOpt.get();
-        if (!canAccessInvoiceInDossier(sessionUser, invoice, dossierId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        String filePath = invoice.getFilePath();
-        if (filePath != null && !filePath.endsWith(filename)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        log.debug("Requête de fichier reçue pour: {}", filename);
 
         try {
             Path dir = fileStorageService.getBaseDirForFiles();
-            log.debug("Recherche dans le r?pertoire de base: {}", dir);
 
             if (!Files.exists(dir)) {
-                log.error("Le r?pertoire de base n'existe pas: {}", dir);
+                log.error("Le répertoire de base n'existe pas: {}", dir);
                 return ResponseEntity.notFound().build();
             }
 
-            // Chercher fichier se terminant par filename (car pr?fixe UUID ajout?)
-            // Utilisation de try-with-resources pour fermer le stream
             try (java.util.stream.Stream<Path> stream = Files.walk(dir)) {
                 Path foundPath = stream
                         .filter(Files::isRegularFile)
@@ -909,15 +615,14 @@ public class DynamicInvoiceController {
                         .orElse(null);
 
                 if (foundPath == null) {
-                    log.warn("Fichier non trouv? apr?s recherche r?cursive: {}", filename);
+                    log.warn("Fichier non trouvé après recherche récursive: {}", filename);
                     return ResponseEntity.notFound().build();
                 }
 
-                log.debug("Fichier trouv?: {}", foundPath);
                 Resource resource = new UrlResource(foundPath.toUri());
 
                 if (!resource.exists() || !resource.isReadable()) {
-                    log.error("Fichier trouv? mais non lisible: {}", foundPath);
+                    log.error("Fichier trouvé mais non lisible: {}", foundPath);
                     return ResponseEntity.notFound().build();
                 }
 
@@ -932,43 +637,29 @@ public class DynamicInvoiceController {
                         .body(resource);
             }
         } catch (Exception e) {
-            log.error("Erreur lors de la r?cup?ration du fichier {}: {}", filename, e.getMessage());
+            log.error("Erreur lors de la récupération du fichier {}: {}", filename, e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @PostMapping("/{id}/link-tier")
     @Transactional
-    @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<?> linkTier(
             @PathVariable Long id,
             @RequestBody Map<String, Long> request,
-            @RequestParam(value = "dossierId", required = false) Long dossierId,
-            HttpSession session) {
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
         Long tierId = request.get("tierId");
 
         log.info("=== LIAISON TIER À FACTURE ===");
         log.info("Invoice ID: {}, Tier ID: {}", id, tierId);
 
         try {
-            // 1. Récupérer la facture
             DynamicInvoice invoice = dynamicInvoiceDao.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée: " + id));
 
-            SessionUser sessionUser = authService.requireSessionUser(session);
+            Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
 
-            dossierId = resolveDossierId(sessionUser, dossierId, session);
-            if (dossierId == null) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "dossier_required"));
-            }
-            if (!canAccessInvoiceInDossier(sessionUser, invoice, dossierId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("success", false, "error", "forbidden"));
-            }
-
-            // 2. Récupérer le tier
-            Optional<TierDto> tierDtoOpt = tierService.getTierById(tierId, dossierId);
+            Optional<TierDto> tierDtoOpt = tierService.getTierById(tierId, resolvedDossierId);
 
             if (tierDtoOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -978,18 +669,14 @@ public class DynamicInvoiceController {
 
             TierDto tierDto = tierDtoOpt.get();
 
-            log.info("Liaison: Facture '{}' → Tier '{}'",
-                    invoice.getFilename(), tierDto.getLibelle());
+            log.info("Liaison: Facture '{}' → Tier '{}'", invoice.getFilename(), tierDto.getLibelle());
 
-            // 3. Convertir DTO en Entity
             Tier tier = convertDtoToEntity(tierDto);
 
-            // 4. Lier le tier à la facture
             invoice.setTier(tier);
             invoice.setTierId(tier.getId());
             invoice.setTierName(tier.getLibelle());
 
-            // MODIFICATION : Initialiser fieldsData ICI
             Map<String, Object> fieldsData = invoice.getFieldsData();
             if (fieldsData == null) {
                 fieldsData = new LinkedHashMap<>();
@@ -997,12 +684,10 @@ public class DynamicInvoiceController {
 
             List<String> autoFilledFields = new ArrayList<>();
 
-            // NOUVEAU : Remplacer supplier par Tier.libelle
             fieldsData.put("supplier", tier.getLibelle());
             autoFilledFields.add("supplier");
             log.info("Supplier remplacé par Tier.libelle: {}", tier.getLibelle());
 
-            // 5. Auto-remplir les comptes comptables si disponibles
             if (tier.hasAccountingConfiguration()) {
                 fieldsData.put("tierNumber", tier.getTierNumber());
                 autoFilledFields.add("tierNumber");
@@ -1019,16 +704,10 @@ public class DynamicInvoiceController {
                 autoFilledFields.add("chargeAccount");
                 autoFilledFields.add("tvaAccount");
                 autoFilledFields.add("tvaRate");
-
-                log.info("Comptes comptables auto-remplis:");
-                log.info("  - tierNumber: {}", tier.getTierNumber());
-                log.info("  - chargeAccount: {}", tier.getDefaultChargeAccount());
-                log.info("  - tvaAccount: {}", tier.getTvaAccount());
             }
 
             invoice.setFieldsData(fieldsData);
 
-            // Mettre à jour autoFilledFields
             List<String> currentAutoFilled = invoice.getAutoFilledFields();
             if (currentAutoFilled == null) {
                 currentAutoFilled = new ArrayList<>();
@@ -1036,13 +715,11 @@ public class DynamicInvoiceController {
             currentAutoFilled.addAll(autoFilledFields);
             invoice.setAutoFilledFields(currentAutoFilled);
 
-            // 6. Mettre à jour le status si maintenant complet
             if (invoice.getStatus() == InvoiceStatus.TREATED) {
                 invoice.setStatus(InvoiceStatus.READY_TO_VALIDATE);
                 log.info("Status mis à jour: READY_TO_VALIDATE");
             }
 
-            // 7. Sauvegarder
             DynamicInvoice saved = dynamicInvoiceDao.save(invoice);
 
             log.info("Tier lié avec succès");
@@ -1067,122 +744,14 @@ public class DynamicInvoiceController {
 
     // ===================== HELPERS =====================
 
-    private DynamicInvoice createUploadOnlyInvoice(MultipartFile file) {
-        String filePath = fileStorageService.store(file);
-        DynamicInvoice invoice = new DynamicInvoice();
-
-        String originalName = file.getOriginalFilename();
-        String safeName = originalName != null ? originalName : "upload";
-
-        invoice.setFilename(safeName);
-        invoice.setOriginalName(safeName);
-        invoice.setFilePath(filePath);
-        invoice.setFileSize(file.getSize());
-        invoice.setRawOcrText("");
-        invoice.setExtractedData(new LinkedHashMap<>());
-        invoice.setFieldsData(new LinkedHashMap<>());
-        invoice.setMissingFields(new ArrayList<>());
-        invoice.setLowConfidenceFields(new ArrayList<>());
-        invoice.setAutoFilledFields(new ArrayList<>());
-        invoice.setStatus(InvoiceStatus.PENDING);
-        return invoice;
-    }
-
-    private Dossier requireDossierForUser(SessionUser sessionUser, Long dossierId) {
-        if (sessionUser == null || dossierId == null) {
-            return null;
-        }
-
-        if (sessionUser.isAdmin()) {
-            return dossierDao.findById(dossierId).orElse(null);
-        }
-        if (sessionUser.isComptable()) {
-            return dossierDao.findByIdAndComptableId(dossierId, sessionUser.id()).orElse(null);
-        }
-        if (sessionUser.isClient()) {
-            return dossierDao.findByIdAndClientId(dossierId, sessionUser.id()).orElse(null);
-        }
-        return null;
-    }
-
-    private Long resolveDossierId(SessionUser sessionUser, Long dossierId, HttpSession session) {
+    private Long resolveDossierId(Long dossierId) {
         if (dossierId != null) {
             return dossierId;
         }
-        if (sessionUser == null || session == null) {
-            return null;
-        }
-        Object rawId = session.getAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-        if (rawId == null) {
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        Long resolvedId;
-        try {
-            resolvedId = Long.valueOf(rawId.toString());
-        } catch (NumberFormatException ex) {
-            session.removeAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        if (requireDossierForUser(sessionUser, resolvedId) == null) {
-            session.removeAttribute(SessionKeys.ACTIVE_DOSSIER_ID);
-            if (sessionUser.isClient()) {
-                Dossier fallback = dossierDao.findFirstByClientIdAndActiveTrueOrderByCreatedAtDesc(sessionUser.id())
-                        .orElse(null);
-                if (fallback != null) {
-                    session.setAttribute(SessionKeys.ACTIVE_DOSSIER_ID, fallback.getId());
-                    return fallback.getId();
-                }
-            }
-            return null;
-        }
-        return resolvedId;
-    }
-
-    private boolean canAccessInvoiceInDossier(SessionUser sessionUser, DynamicInvoice invoice, Long dossierId) {
-        if (sessionUser == null || invoice == null || dossierId == null) {
-            return false;
-        }
-        Long invoiceDossierId = invoice.getDossierId();
-        if (invoiceDossierId == null || !dossierId.equals(invoiceDossierId)) {
-            return false;
-        }
-        return canAccessInvoice(sessionUser, invoice);
-    }
-
-    private boolean canAccessInvoice(SessionUser sessionUser, DynamicInvoice invoice) {
-        if (sessionUser == null || invoice == null) {
-            return false;
-        }
-        if (sessionUser.isAdmin()) {
-            return true;
-        }
-        Long dossierId = invoice.getDossierId();
-        if (dossierId == null) {
-            return false;
-        }
-        if (sessionUser.isComptable()) {
-            return dossierDao.findByIdAndComptableId(dossierId, sessionUser.id()).isPresent();
-        }
-        if (sessionUser.isClient()) {
-            return dossierDao.findByIdAndClientId(dossierId, sessionUser.id()).isPresent();
-        }
-        return false;
+        return dossierDao.findAll().stream()
+                .findFirst()
+                .map(Dossier::getId)
+                .orElse(null);
     }
 
     private boolean isValidFileType(String filename) {
@@ -1331,15 +900,15 @@ public class DynamicInvoiceController {
 
                 if (hasAccountingConfig) {
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> fieldsData = (Map<String, Object>) response.get("fieldsData");
-                    if (fieldsData != null) {
-                        fieldsData.put("tierNumber", tier.getTierNumber());
+                    Map<String, Object> fd = (Map<String, Object>) response.get("fieldsData");
+                    if (fd != null) {
+                        fd.put("tierNumber", tier.getTierNumber());
                         if (tier.getAuxiliaireMode() != null && tier.getAuxiliaireMode()) {
-                            fieldsData.put("collectifAccount", tier.getCollectifAccount());
+                            fd.put("collectifAccount", tier.getCollectifAccount());
                         }
-                        fieldsData.put("chargeAccount", tier.getDefaultChargeAccount());
-                        fieldsData.put("tvaAccount", tier.getTvaAccount());
-                        fieldsData.put("tvaRate", tier.getDefaultTvaRate());
+                        fd.put("chargeAccount", tier.getDefaultChargeAccount());
+                        fd.put("tvaAccount", tier.getTvaAccount());
+                        fd.put("tvaRate", tier.getDefaultTvaRate());
                     }
                 }
             } else {

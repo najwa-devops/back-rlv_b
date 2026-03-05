@@ -15,6 +15,8 @@ import com.example.releve_bancaire.banking_services.BankStatementValidatorServic
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -45,6 +47,7 @@ import java.util.regex.Pattern;
 public class BankStatementController {
 
     private static final String DEFAULT_COMPTE = "349700000";
+    private static final long DEFAULT_MAX_DB_FILE_SIZE_BYTES = 15L * 1024L * 1024L;
 
     private final BankStatementRepository repository;
     private final BankTransactionRepository transactionRepository;
@@ -54,6 +57,8 @@ public class BankStatementController {
     private final ComptabilisationWorkflowService comptabilisationWorkflowService;
     private final BankTransactionAccountLearningService accountLearningService;
     private final BankFileStorageService bankFileStorageService;
+    @Value("${banking.max-db-file-size-bytes:15728640}")
+    private long maxDbFileSizeBytes;
     private static final Pattern DUPLICATE_OF_PATTERN = Pattern.compile("DUPLIQUE_OF:(\\d+)");
     private static final Pattern OCR_DATE_PATTERN = Pattern.compile(
             "(?<!\\d)(\\d{1,2}(?:\\s*[\\/\\-.]\\s*|\\s+)\\d{1,2}(?:(?:\\s*[\\/\\-.]\\s*|\\s+)\\d{2,4})?)(?!\\d)");
@@ -61,7 +66,7 @@ public class BankStatementController {
 
     // ==================== UPLOAD & TRAITEMENT ====================
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadAndProcess(
             @RequestParam("file") MultipartFile file,
             @RequestParam(name = "bankType", required = false) String bankType,
@@ -73,6 +78,15 @@ public class BankStatementController {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(
                         Map.of("error", "Fichier vide"));
+            }
+            if (file.getSize() > maxDbFileSizeBytes) {
+                long effectiveLimit = maxDbFileSizeBytes > 0 ? maxDbFileSizeBytes : DEFAULT_MAX_DB_FILE_SIZE_BYTES;
+                long maxMb = Math.max(1L, effectiveLimit / (1024L * 1024L));
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
+                        "error", "Fichier trop volumineux pour le stockage en base",
+                        "maxFileSizeMb", maxMb,
+                        "receivedFileSizeBytes", file.getSize(),
+                        "hint", "Reduire la taille du fichier ou augmenter banking.max-db-file-size-bytes et max_allowed_packet MariaDB"));
             }
 
             String originalName = file.getOriginalFilename();
@@ -125,8 +139,13 @@ public class BankStatementController {
 
             return ResponseEntity.accepted().body(toResponse(saved));
 
+        } catch (DataAccessException e) {
+            log.error("Erreur DB upload: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
+                    "error", "Le fichier est trop volumineux pour la base de donnees",
+                    "hint", "Augmenter max_allowed_packet MariaDB ou reduire la taille du fichier"));
         } catch (Exception e) {
-            log.error("❌ Erreur upload: {}", e.getMessage(), e);
+            log.error("? Erreur upload: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     Map.of("error", e.getMessage() != null ? e.getMessage() : "Erreur interne"));
         }
