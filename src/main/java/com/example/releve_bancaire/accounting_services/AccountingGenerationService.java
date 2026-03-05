@@ -53,7 +53,10 @@ public class AccountingGenerationService {
                     "Aucune transaction VALIDATED/COMPTABILISE trouvee pour le mois demande.");
         }
 
-        long currentMax = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois);
+        Long currentMax = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois);
+        if (currentMax == null) {
+            currentMax = 0L;
+        }
         long nextNumero = currentMax + 1;
         long cptjournalBaseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
         String monthLabel = monthLabel(nmois);

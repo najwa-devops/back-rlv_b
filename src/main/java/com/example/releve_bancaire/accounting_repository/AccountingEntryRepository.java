@@ -14,7 +14,7 @@ public interface AccountingEntryRepository extends JpaRepository<AccountingEntry
             SELECT COALESCE(MAX(e.numero), 0)
             FROM AccountingEntry e
             WHERE e.ndosjrn = :journal
-              AND e.nmois = :nmois
+              AND e.nmois = :month
             """)
-    long findMaxNumeroByJournalAndMonth(@Param("journal") String journal, @Param("nmois") Integer nmois);
+    Long findMaxNumeroByJournalAndMonth(@Param("journal") String journal, @Param("month") Integer month);
 }

@@ -69,7 +69,8 @@ public class ComptabilisationWorkflowService {
         int nmois = resolveMonth(statement, transactions);
         String moisTexte = monthLabel(nmois);
         String nmoisTexte = String.format("%02d", nmois);
-        long fallbackNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois) + 1;
+        Long maxNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois);
+        long fallbackNumero = (maxNumero == null ? 0L : maxNumero) + 1;
 
         List<SimulatedEntry> rows = new ArrayList<>();
         for (BankTransaction tx : transactions) {

@@ -40,8 +40,6 @@ services:
       TESSERACT_LANGUAGE: ${TESSERACT_LANGUAGE:-eng+fra}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3022}
       SHOW_SQL: ${SHOW_SQL:-false}
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-change-this-secret-change-this-secret}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       SEED_SUPERADMIN_ENABLED: ${SEED_SUPERADMIN_ENABLED:-true}
       SEED_SUPERADMIN_EMAIL: ${SEED_SUPERADMIN_EMAIL:-superadmin@invoice.local}
       SEED_SUPERADMIN_PASSWORD: ${SEED_SUPERADMIN_PASSWORD:-Admin@123}
