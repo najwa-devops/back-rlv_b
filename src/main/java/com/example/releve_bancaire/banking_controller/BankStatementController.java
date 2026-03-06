@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -57,6 +56,10 @@ public class BankStatementController {
     private final ComptabilisationWorkflowService comptabilisationWorkflowService;
     private final BankTransactionAccountLearningService accountLearningService;
     private final BankFileStorageService bankFileStorageService;
+    @Value("${banking.storage.mode:FILE_SYSTEM}")
+    private String bankingStorageMode;
+    @Value("${banking.metadata.db.enabled:true}")
+    private boolean bankingMetadataDbEnabled;
     @Value("${banking.max-db-file-size-bytes:15728640}")
     private long maxDbFileSizeBytes;
     private static final Pattern DUPLICATE_OF_PATTERN = Pattern.compile("DUPLIQUE_OF:(\\d+)");
@@ -79,7 +82,8 @@ public class BankStatementController {
                 return ResponseEntity.badRequest().body(
                         Map.of("error", "Fichier vide"));
             }
-            if (file.getSize() > maxDbFileSizeBytes) {
+            boolean dbMode = "DB_ONLY".equalsIgnoreCase(bankingStorageMode);
+            if (dbMode && file.getSize() > maxDbFileSizeBytes) {
                 long effectiveLimit = maxDbFileSizeBytes > 0 ? maxDbFileSizeBytes : DEFAULT_MAX_DB_FILE_SIZE_BYTES;
                 long maxMb = Math.max(1L, effectiveLimit / (1024L * 1024L));
                 return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(Map.of(
@@ -111,33 +115,41 @@ public class BankStatementController {
 
             // Stocker le fichier
             BankFileStorageService.StoredBankFile storedFile = bankFileStorageService.storeBankStatement(file);
-            log.info("✅ Fichier stocké en base: {}", storedFile.filename());
+            log.info("✅ Fichier stocké sur disque: {}", storedFile.filePath());
 
-            // Créer l'entité
-            BankStatement statement = new BankStatement();
-            statement.setFilename(storedFile.filename());
-            statement.setOriginalName(storedFile.originalName());
-            statement.setFilePath("DB_ONLY");
-            statement.setFileSize(storedFile.size());
-            statement.setFileContentType(storedFile.contentType());
-            statement.setFileData(storedFile.data());
-            statement.setStatus(BankStatus.PENDING);
+            if (bankingMetadataDbEnabled) {
+                BankStatement statement = new BankStatement();
+                statement.setFilename(storedFile.filename());
+                statement.setOriginalName(storedFile.originalName());
+                statement.setFilePath(storedFile.filePath());
+                statement.setFileSize(storedFile.size());
+                statement.setFileContentType(storedFile.contentType());
+                statement.setFileData(null);
+                statement.setStatus(BankStatus.PENDING);
+                statement.setMonth(null);
+                statement.setYear(null);
 
-            // Les dates de période sont déterminées par OCR/extraction metadata.
-            statement.setMonth(null);
-            statement.setYear(null);
+                BankStatement saved = repository.save(statement);
+                log.info("✅ Relevé metadata créé: ID={}", saved.getId());
 
-            BankStatement saved = repository.save(statement);
-            log.info("✅ Relevé créé: ID={}", saved.getId());
+                List<String> cleanedAllowedBanks = normalizeAllowedBanks(allowedBanks);
+                log.info("🚀 Lancement traitement asynchrone (Banque: {}, Autorisées: {})", bankType,
+                        cleanedAllowedBanks);
+                processingService.processStatementAsync(saved.getId(), bankType, cleanedAllowedBanks);
 
-            List<String> cleanedAllowedBanks = normalizeAllowedBanks(allowedBanks);
+                return ResponseEntity.accepted().body(toResponse(saved));
+            }
 
-            // Traiter de manière asynchrone avec
-            log.info("🚀 Lancement traitement asynchrone (Banque: {}, Autorisées: {})", bankType,
-                    cleanedAllowedBanks);
-            processingService.processStatementAsync(saved.getId(), bankType, cleanedAllowedBanks);
-
-            return ResponseEntity.accepted().body(toResponse(saved));
+            return ResponseEntity.accepted().body(Map.of(
+                    "id", System.currentTimeMillis(),
+                    "filename", storedFile.filename(),
+                    "originalName", storedFile.originalName(),
+                    "filePath", storedFile.filePath(),
+                    "fileSize", storedFile.size(),
+                    "contentType", storedFile.contentType(),
+                    "status", "PENDING",
+                    "storageMode", "FILE_SYSTEM",
+                    "fileUrl", "/api/bank-statements/files/" + storedFile.filename()));
 
         } catch (DataAccessException e) {
             log.error("Erreur DB upload: {}", e.getMessage(), e);
@@ -219,6 +231,30 @@ public class BankStatementController {
             @RequestParam(name = "limit", defaultValue = "1000") int limit) {
 
         try {
+            if (!bankingMetadataDbEnabled && !"DB_ONLY".equalsIgnoreCase(bankingStorageMode)) {
+                List<Map<String, Object>> files = bankFileStorageService.listStoredBankStatements().stream()
+                        .limit(Math.max(1, limit))
+                        .map(file -> {
+                            Map<String, Object> item = new LinkedHashMap<>();
+                            item.put("id", file.lastModified());
+                            item.put("filename", file.filename());
+                            item.put("originalName", file.filename());
+                            item.put("status", "PENDING");
+                            item.put("statusCode", "PENDING");
+                            item.put("filePath", file.filePath());
+                            item.put("fileSize", file.size());
+                            item.put("storageMode", "FILE_SYSTEM");
+                            item.put("fileUrl", "/api/bank-statements/files/" + file.filename());
+                            item.put("createdAt", null);
+                            item.put("updatedAt", null);
+                            return item;
+                        })
+                        .toList();
+                return ResponseEntity.ok(Map.of(
+                        "count", files.size(),
+                        "statements", files));
+            }
+
             List<BankStatement> statements;
 
             if (status != null) {
@@ -524,16 +560,18 @@ public class BankStatementController {
     @CrossOrigin("*")
     public ResponseEntity<Resource> getFile(@PathVariable("filename") String filename) {
         try {
-            Optional<BankStatement> statementOpt = repository.findFirstByFilenameOrderByIdDesc(filename);
-            if (statementOpt.isEmpty() || statementOpt.get().getFileData() == null || statementOpt.get().getFileData().length == 0) {
+            Resource resource = bankFileStorageService.loadBankStatement(filename);
+            if (resource == null || !resource.exists()) {
                 return ResponseEntity.notFound().build();
             }
-
-            BankStatement statement = statementOpt.get();
-            Resource resource = new ByteArrayResource(statement.getFileData());
-            String contentType = statement.getFileContentType() != null
-                    ? statement.getFileContentType()
-                    : "application/octet-stream";
+            String contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            try {
+                contentType = java.nio.file.Files.probeContentType(resource.getFile().toPath());
+                if (contentType == null || contentType.isBlank()) {
+                    contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+                }
+            } catch (Exception ignored) {
+            }
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))

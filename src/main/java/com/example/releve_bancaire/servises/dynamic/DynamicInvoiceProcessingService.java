@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,6 +56,7 @@ public class DynamicInvoiceProcessingService {
     private final AdvancedOcrService advancedOcrService;
     private final FileStorageService fileStorageService;
     private final FieldPatternService fieldPatternService;
+    private final JdbcTemplate jdbcTemplate;
 
     // CONFIGURATION: Pourcentage du texte considÃƒÂ©rÃƒÂ© comme footer
     private static final double FOOTER_START_PERCENTAGE = 0.75; // Footer commence ÃƒÂ  60%
@@ -239,6 +242,7 @@ public class DynamicInvoiceProcessingService {
         // Ãƒâ€°TAPE 7: LIAISON TIER AUTOMATIQUE
         log.info("Liaison Tier automatique...");
         linkInvoiceToTier(invoice, fieldsData, autoFilledFields);
+        enrichWithComptesByIce(fieldsData, autoFilledFields);
 
         // Ãƒâ€°TAPE 8: CALCUL MONTANTS
         calculateAndValidateAmounts(fieldsData);
@@ -637,6 +641,174 @@ public class DynamicInvoiceProcessingService {
     private String getStringValue(Map<String, Object> map, String key) {
         Object value = map.get(key);
         return value != null ? value.toString() : null;
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private void enrichWithComptesByIce(Map<String, Object> fieldsData, List<String> autoFilledFields) {
+        if (fieldsData == null || fieldsData.isEmpty()) {
+            return;
+        }
+
+        String rawIce = getStringValue(fieldsData, "ice");
+        String ice = normalizeIce(rawIce);
+        if (ice == null) {
+            return;
+        }
+
+        Map<String, Object> compte = findCompteByIce(ice);
+        if (compte == null || compte.isEmpty()) {
+            return;
+        }
+
+        String numero = firstNonBlank(
+                getStringValue(compte, "numero"),
+                getStringValue(compte, "code"),
+                getStringValue(compte, "num"));
+        String tvaCompte = firstNonBlank(
+                getStringValue(compte, "tva"),
+                getStringValue(compte, "va"),
+                getStringValue(compte, "tva_rate"),
+                getStringValue(compte, "tvaRate"));
+        String chargeCompte = firstNonBlank(
+                getStringValue(compte, "charge"),
+                getStringValue(compte, "chrge"),
+                getStringValue(compte, "compt_ht"),
+                getStringValue(compte, "ht"));
+        String libelle = firstNonBlank(
+                getStringValue(compte, "libelle"),
+                getStringValue(compte, "label"),
+                getStringValue(compte, "name"));
+        String activite = firstNonBlank(
+                getStringValue(compte, "activite"),
+                getStringValue(compte, "activiter"),
+                getStringValue(compte, "activity"));
+
+        if (numero != null) {
+            fieldsData.put("tierNumber", numero);
+            fieldsData.put("comptTier", numero);
+            autoFilledFields.add("tierNumber");
+            autoFilledFields.add("comptTier");
+        }
+        if (tvaCompte != null) {
+            fieldsData.put("tvaAccount", tvaCompte);
+            fieldsData.put("comptTva", tvaCompte);
+            autoFilledFields.add("tvaAccount");
+            autoFilledFields.add("comptTva");
+        }
+        if (chargeCompte != null) {
+            fieldsData.put("chargeAccount", chargeCompte);
+            fieldsData.put("comptHt", chargeCompte);
+            autoFilledFields.add("chargeAccount");
+            autoFilledFields.add("comptHt");
+        }
+
+        String supplierFromCompte = buildSupplierFromCompte(libelle, activite);
+        if (supplierFromCompte != null) {
+            fieldsData.put("supplier", supplierFromCompte);
+            autoFilledFields.add("supplier");
+        }
+    }
+
+    private String buildSupplierFromCompte(String libelle, String activite) {
+        if ((libelle == null || libelle.isBlank()) && (activite == null || activite.isBlank())) {
+            return null;
+        }
+        if (libelle != null && !libelle.isBlank() && activite != null && !activite.isBlank()) {
+            return libelle + " - " + activite;
+        }
+        return libelle != null && !libelle.isBlank() ? libelle : activite;
+    }
+
+    private String normalizeIce(String rawIce) {
+        if (rawIce == null || rawIce.isBlank()) {
+            return null;
+        }
+        String normalized = rawIce.replaceAll("\\D", "");
+        if (normalized.length() != 15) {
+            return null;
+        }
+        return normalized;
+    }
+
+    private record TableRef(String schema, String name) {
+        String qualified() {
+            return "`" + schema + "`.`" + name + "`";
+        }
+    }
+
+    private Map<String, Object> findCompteByIce(String normalizedIce) {
+        TableRef table = resolveComptesTable();
+        if (table == null || !hasColumn(table, "ice")) {
+            return null;
+        }
+
+        String sql = "SELECT * FROM " + table.qualified() + " " +
+                "WHERE CAST(ice AS CHAR) = ? " +
+                "OR REPLACE(REPLACE(REPLACE(CAST(ice AS CHAR), ' ', ''), '.', ''), '-', '') = ? " +
+                "LIMIT 1";
+
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, normalizedIce, normalizedIce);
+            if (rows.isEmpty()) {
+                return null;
+            }
+            return rows.get(0);
+        } catch (DataAccessException ex) {
+            log.warn("Failed comptes ICE lookup: {}", ex.getMessage());
+            return null;
+        }
+    }
+
+    private TableRef resolveComptesTable() {
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT table_schema, table_name " +
+                            "FROM information_schema.tables " +
+                            "WHERE table_name IN ('comptes', 'accounts') " +
+                            "ORDER BY (table_schema = DATABASE()) DESC, (table_name = 'comptes') DESC " +
+                            "LIMIT 1");
+            if (rows.isEmpty()) {
+                return null;
+            }
+            Map<String, Object> row = rows.get(0);
+            Object schema = row.get("table_schema");
+            Object name = row.get("table_name");
+            if (schema == null || name == null) {
+                return null;
+            }
+            return new TableRef(String.valueOf(schema), String.valueOf(name));
+        } catch (DataAccessException ex) {
+            return null;
+        }
+    }
+
+    private boolean hasColumn(TableRef table, String columnName) {
+        if (table == null) {
+            return false;
+        }
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns " +
+                            "WHERE table_schema = ? AND table_name = ? AND column_name = ?",
+                    Integer.class,
+                    table.schema(),
+                    table.name(),
+                    columnName);
+            return count != null && count > 0;
+        } catch (DataAccessException ex) {
+            return false;
+        }
     }
 
     private Tier convertDtoToEntity(TierDto dto) {

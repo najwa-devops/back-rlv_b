@@ -10,20 +10,27 @@ import com.example.releve_bancaire.repository.DynamicInvoiceDao;
 import com.example.releve_bancaire.utils.InvoiceTypeDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/accounting/journal")
@@ -35,6 +42,7 @@ public class AccountingJournalController {
     private final AccountingEntryDao accountingEntryDao;
     private final DynamicInvoiceDao dynamicInvoiceDao;
     private final DossierDao dossierDao;
+    private final JdbcTemplate jdbcTemplate;
 
     @GetMapping("/entries")
     public ResponseEntity<?> listEntries(
@@ -111,10 +119,10 @@ public class AccountingJournalController {
         Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
         Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
-        if (invoice.getStatus() != InvoiceStatus.VALIDATED) {
+        if (!isEligibleForAccounting(invoice.getStatus())) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", "invoice_not_validated",
-                    "currentStatus", invoice.getStatus().name()));
+                    "currentStatus", statusName(invoice.getStatus())));
         }
 
         if (Boolean.TRUE.equals(invoice.getAccounted())) {
@@ -133,6 +141,7 @@ public class AccountingJournalController {
 
         List<AccountingEntry> entries = buildEntries(invoice, inputs);
         List<AccountingEntry> saved = accountingEntryDao.saveAll(entries);
+        CptjornalSyncResult cptjornalSync = safeSyncCptjornalRows(saved, invoice, resolvedDossierId);
 
         invoice.setAccounted(true);
         invoice.setAccountedAt(java.time.LocalDateTime.now());
@@ -141,7 +150,60 @@ public class AccountingJournalController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Facture comptabilisee",
+                "hasMissingAccounts", !inputs.missingAccountWarnings.isEmpty(),
+                "missingAccounts", inputs.missingAccountWarnings,
+                "cptjornalSynced", cptjornalSync.success,
+                "cptjornalInserted", cptjornalSync.insertedRows,
+                "cptjornalMessage", cptjornalSync.message,
                 "entries", toResponseWithInvoiceCounter(saved)));
+    }
+
+    @GetMapping("/entries/preview/from-invoice/{id}")
+    public ResponseEntity<?> previewInvoiceEntries(
+            @PathVariable Long id,
+            @RequestParam(value = "dossierId", required = false) Long dossierId) {
+        Optional<DynamicInvoice> invoiceOpt = dynamicInvoiceDao.findById(id);
+        if (invoiceOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        DynamicInvoice invoice = invoiceOpt.get();
+        Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
+        Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
+
+        if (!isEligibleForAccounting(invoice.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "invoice_not_validated",
+                    "currentStatus", statusName(invoice.getStatus())));
+        }
+
+        if (Boolean.TRUE.equals(invoice.getAccounted())) {
+            List<AccountingEntry> existing = accountingEntryDao.findByInvoiceIdOrderByIdAsc(invoice.getId());
+            return ResponseEntity.ok(Map.of(
+                    "message", "Facture deja comptabilisee",
+                    "alreadyAccounted", true,
+                    "entries", toResponseWithInvoiceCounter(existing)));
+        }
+
+        AccountingInputs inputs = resolveInputs(invoice, dossier);
+        if (!inputs.isValid()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "missing_accounting_data",
+                    "details", inputs.getErrors()));
+        }
+
+        List<AccountingEntry> preview = buildEntries(invoice, inputs);
+        List<Map<String, Object>> entries = new ArrayList<>();
+        for (AccountingEntry entry : preview) {
+            entries.add(toResponse(entry, 1));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Apercu du journal facture",
+                "alreadyAccounted", false,
+                "hasMissingAccounts", !inputs.missingAccountWarnings.isEmpty(),
+                "missingAccounts", inputs.missingAccountWarnings,
+                "entries", entries));
     }
 
     @PostMapping("/entries/rebuild/{id}")
@@ -158,10 +220,10 @@ public class AccountingJournalController {
         Long resolvedDossierId = resolveDossierId(dossierId != null ? dossierId : invoice.getDossierId());
         Dossier dossier = resolvedDossierId != null ? dossierDao.findById(resolvedDossierId).orElse(null) : null;
 
-        if (invoice.getStatus() != InvoiceStatus.VALIDATED) {
+        if (!isEligibleForAccounting(invoice.getStatus())) {
             return ResponseEntity.badRequest().body(Map.of(
                     "error", "invoice_not_validated",
-                    "currentStatus", invoice.getStatus().name()));
+                    "currentStatus", statusName(invoice.getStatus())));
         }
 
         List<AccountingEntry> existing = accountingEntryDao.findByInvoiceIdOrderByIdAsc(invoice.getId());
@@ -178,6 +240,7 @@ public class AccountingJournalController {
 
         List<AccountingEntry> entries = buildEntries(invoice, inputs);
         List<AccountingEntry> saved = accountingEntryDao.saveAll(entries);
+        CptjornalSyncResult cptjornalSync = safeSyncCptjornalRows(saved, invoice, resolvedDossierId);
 
         invoice.setAccounted(true);
         invoice.setAccountedAt(java.time.LocalDateTime.now());
@@ -186,7 +249,215 @@ public class AccountingJournalController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Ecritures reconstruites",
+                "hasMissingAccounts", !inputs.missingAccountWarnings.isEmpty(),
+                "missingAccounts", inputs.missingAccountWarnings,
+                "cptjornalSynced", cptjornalSync.success,
+                "cptjornalInserted", cptjornalSync.insertedRows,
+                "cptjornalMessage", cptjornalSync.message,
                 "entries", toResponseWithInvoiceCounter(saved)));
+    }
+
+    private record TableRef(String schema, String name) {
+        String qualified() {
+            return "`" + schema + "`.`" + name + "`";
+        }
+    }
+
+    private record CptjornalSyncResult(boolean success, int insertedRows, String message) {
+    }
+
+    private CptjornalSyncResult safeSyncCptjornalRows(
+            List<AccountingEntry> entries,
+            DynamicInvoice invoice,
+            Long dossierId) {
+        try {
+            return syncCptjornalRows(entries, invoice, dossierId);
+        } catch (Exception ex) {
+            log.warn("Sync cptjornal echouee (non bloquante): {}", ex.getMessage(), ex);
+            return new CptjornalSyncResult(false, 0, "Sync cptjornal echouee: " + ex.getMessage());
+        }
+    }
+
+    private CptjornalSyncResult syncCptjornalRows(
+            List<AccountingEntry> entries,
+            DynamicInvoice invoice,
+            Long dossierId) {
+        if (entries == null || entries.isEmpty()) {
+            return new CptjornalSyncResult(true, 0, "Aucune ecriture a synchroniser");
+        }
+
+        TableRef table = resolveCptjornalTable();
+        if (table == null) {
+            return new CptjornalSyncResult(false, 0, "Table cptjornal/Cptjournal introuvable");
+        }
+
+        Map<String, String> columns = resolveColumnMap(table);
+        if (columns.isEmpty()) {
+            return new CptjornalSyncResult(false, 0, "Colonnes cptjornal introuvables");
+        }
+
+        long nextNmouv = resolveNextNmouv(table, columns);
+        LocalDateTime now = LocalDateTime.now();
+        int inserted = 0;
+
+        try {
+            for (int i = 0; i < entries.size(); i++) {
+                AccountingEntry entry = entries.get(i);
+                long nmouv = nextNmouv + i;
+
+                LocalDate entryDate = entry.getEntryDate();
+                if (entryDate == null) {
+                    entryDate = LocalDate.now();
+                }
+
+                LinkedHashMap<String, Object> row = new LinkedHashMap<>();
+                putRowValue(row, columns, nmouv, "nmouv");
+                putRowValue(row, columns, nmouv, "numero");
+                putRowValue(row, columns, nmouv, "nmmouv");
+                putRowValue(row, columns, entryDate.getDayOfMonth(), "dat");
+                putRowValue(row, columns, entryDate, "datcompl");
+                putRowValue(row, columns, entryDate, "dat_insert");
+                putRowValue(row, columns, now, "dat_update");
+                putRowValue(row, columns, entry.getJournal(), "ndosjrn", "jrn_org");
+                putRowValue(row, columns, entry.getAccountNumber(), "ncompt", "compte_t", "compte_org");
+                putRowValue(row, columns, safeMoney(entry.getDebit()), "debit");
+                putRowValue(row, columns, safeMoney(entry.getCredit()), "credit");
+                putRowValue(row, columns, optionalString(entry.getLabel()), "ecriture");
+                putRowValue(row, columns, "1", "valider");
+                putRowValue(row, columns, entryDate.getMonthValue(), "nmois");
+                putRowValue(row, columns, String.format("%02d", entryDate.getMonthValue()), "mois", "mois_org");
+                putRowValue(row, columns, dossierId, "cod_dos");
+                putRowValue(row, columns, invoice.getId(), "facture");
+                putRowValue(row, columns, firstNonBlank(invoice.getInvoiceNumber(), invoice.getFieldAsString("invoiceNumber")),
+                        "piece", "piece_c", "numero_org");
+
+                if (!row.isEmpty()) {
+                    insertDynamicRow(table, row);
+                    inserted++;
+                }
+            }
+        } catch (DataAccessException ex) {
+            log.warn("Sync cptjornal impossible: {}", ex.getMessage());
+            return new CptjornalSyncResult(false, inserted, "Erreur insertion cptjornal: " + ex.getMessage());
+        }
+
+        return new CptjornalSyncResult(true, inserted, "Synchronisation cptjornal terminee");
+    }
+
+    private BigDecimal safeMoney(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP) : value;
+    }
+
+    private void insertDynamicRow(TableRef table, LinkedHashMap<String, Object> row) {
+        List<String> cols = new ArrayList<>(row.keySet());
+        String columnClause = String.join(", ", cols.stream().map(c -> "`" + c + "`").toList());
+        String placeholders = String.join(", ", cols.stream().map(c -> "?").toList());
+        String sql = "INSERT INTO " + table.qualified() + " (" + columnClause + ") VALUES (" + placeholders + ")";
+
+        List<Object> args = new ArrayList<>(cols.size());
+        for (String col : cols) {
+            Object value = row.get(col);
+            if (value instanceof LocalDate date) {
+                args.add(Date.valueOf(date));
+            } else if (value instanceof LocalDateTime dt) {
+                args.add(Timestamp.valueOf(dt));
+            } else {
+                args.add(value);
+            }
+        }
+        jdbcTemplate.update(sql, args.toArray());
+    }
+
+    private void putRowValue(LinkedHashMap<String, Object> row, Map<String, String> cols, Object value, String... aliases) {
+        if (value == null || aliases == null) {
+            return;
+        }
+        for (String alias : aliases) {
+            if (alias == null) {
+                continue;
+            }
+            String key = alias.toLowerCase();
+            if (row.containsKey(cols.get(key))) {
+                return;
+            }
+            String realColumn = cols.get(key);
+            if (realColumn != null) {
+                row.put(realColumn, value);
+                return;
+            }
+        }
+    }
+
+    private long resolveNextNmouv(TableRef table, Map<String, String> columns) {
+        try {
+            String nmouvCol = columns.get("nmouv");
+            if (nmouvCol != null) {
+                Long max = jdbcTemplate.queryForObject(
+                        "SELECT COALESCE(MAX(`" + nmouvCol + "`), 0) FROM " + table.qualified(),
+                        Long.class);
+                return (max == null ? 0L : max) + 1L;
+            }
+            String numeroCol = columns.get("numero");
+            if (numeroCol != null) {
+                Long max = jdbcTemplate.queryForObject(
+                        "SELECT COALESCE(MAX(`" + numeroCol + "`), 0) FROM " + table.qualified(),
+                        Long.class);
+                return (max == null ? 0L : max) + 1L;
+            }
+        } catch (DataAccessException ex) {
+            log.warn("Impossible de calculer le prochain nmouv: {}", ex.getMessage());
+        }
+        return 1L;
+    }
+
+    private TableRef resolveCptjornalTable() {
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT table_schema, table_name " +
+                            "FROM information_schema.tables " +
+                            "WHERE table_name IN ('cptjornal', 'Cptjournal', 'cptjournal') " +
+                            "ORDER BY (table_schema = DATABASE()) DESC, " +
+                            "(table_name = 'cptjornal') DESC, (table_name = 'Cptjournal') DESC " +
+                            "LIMIT 1");
+            if (rows.isEmpty()) {
+                return null;
+            }
+            Map<String, Object> row = rows.get(0);
+            Object schema = row.get("table_schema");
+            Object name = row.get("table_name");
+            if (schema == null || name == null) {
+                return null;
+            }
+            return new TableRef(String.valueOf(schema), String.valueOf(name));
+        } catch (DataAccessException ex) {
+            return null;
+        }
+    }
+
+    private Map<String, String> resolveColumnMap(TableRef table) {
+        Map<String, String> columns = new LinkedHashMap<>();
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                    "SELECT column_name FROM information_schema.columns WHERE table_schema = ? AND table_name = ?",
+                    table.schema(),
+                    table.name());
+            Set<String> unique = new HashSet<>();
+            for (Map<String, Object> row : rows) {
+                Object raw = row.get("column_name");
+                if (raw == null) {
+                    continue;
+                }
+                String real = String.valueOf(raw);
+                String normalized = real.toLowerCase();
+                if (unique.add(normalized)) {
+                    columns.put(normalized, real);
+                }
+            }
+        } catch (DataAccessException ex) {
+            log.warn("Impossible de lire les colonnes de {}.{}: {}",
+                    table.schema(), table.name(), ex.getMessage());
+        }
+        return columns;
     }
 
     private List<AccountingEntry> buildEntries(DynamicInvoice invoice, AccountingInputs inputs) {
@@ -355,6 +626,7 @@ public class AccountingJournalController {
             inputs.htLines = absMoneyList(inputs.htLines);
         }
 
+        inputs.applyMissingAccountFallbacks();
         inputs.validate();
         return inputs;
     }
@@ -503,6 +775,16 @@ public class AccountingJournalController {
         return null;
     }
 
+    private boolean isEligibleForAccounting(InvoiceStatus status) {
+        return status == InvoiceStatus.VALIDATED
+                || status == InvoiceStatus.READY_TO_VALIDATE
+                || status == InvoiceStatus.TREATED;
+    }
+
+    private String statusName(InvoiceStatus status) {
+        return status != null ? status.name() : "UNKNOWN";
+    }
+
     private String resolveJournal(DynamicInvoice invoice, Dossier dossier) {
         String purchaseDefault = dossier != null ? trimToNull(dossier.getDefaultPurchaseJournal()) : null;
         String salesDefault = dossier != null ? trimToNull(dossier.getDefaultSalesJournal()) : null;
@@ -571,6 +853,10 @@ public class AccountingJournalController {
     }
 
     private static class AccountingInputs {
+        private static final String FALLBACK_CHARGE_ACCOUNT = "MISSING-CHARGE-HT";
+        private static final String FALLBACK_SUPPLIER_ACCOUNT = "MISSING-FOURNISSEUR";
+        private static final String FALLBACK_TVA_ACCOUNT = "MISSING-TVA";
+
         private String invoiceNumber;
         private String supplier;
         private LocalDate entryDate;
@@ -585,6 +871,7 @@ public class AccountingJournalController {
         private List<BigDecimal> tvaLines = new ArrayList<>();
         private boolean isAvoir;
         private final List<String> errors = new ArrayList<>();
+        private final List<String> missingAccountWarnings = new ArrayList<>();
 
         private boolean isMultiTvaScenario() {
             return hasUsableMultiLines();
@@ -599,21 +886,11 @@ public class AccountingJournalController {
         }
 
         private void validate() {
-            if (chargeAccount == null || chargeAccount.isBlank()) {
-                errors.add("Compte charge/HT manquant");
-            }
-            if (supplierAccount == null || supplierAccount.isBlank()) {
-                errors.add("Compte fournisseur manquant");
-            }
             if (amountHT == null || amountHT.compareTo(BigDecimal.ZERO) <= 0) {
                 errors.add("Montant HT invalide");
             }
             if (amountTTC == null || amountTTC.compareTo(BigDecimal.ZERO) <= 0) {
                 errors.add("Montant TTC invalide");
-            }
-            if (tva != null && tva.compareTo(BigDecimal.ZERO) > 0
-                    && (tvaAccount == null || tvaAccount.isBlank())) {
-                errors.add("Compte TVA manquant");
             }
         }
 
@@ -624,5 +901,24 @@ public class AccountingJournalController {
         private List<String> getErrors() {
             return errors;
         }
+
+        private void applyMissingAccountFallbacks() {
+            if (chargeAccount == null || chargeAccount.isBlank()) {
+                chargeAccount = FALLBACK_CHARGE_ACCOUNT;
+                missingAccountWarnings.add("Compte charge/HT manquant");
+            }
+            if (supplierAccount == null || supplierAccount.isBlank()) {
+                supplierAccount = FALLBACK_SUPPLIER_ACCOUNT;
+                missingAccountWarnings.add("Compte fournisseur manquant");
+            }
+            if (tva != null && tva.compareTo(BigDecimal.ZERO) > 0
+                    && (tvaAccount == null || tvaAccount.isBlank())) {
+                tvaAccount = FALLBACK_TVA_ACCOUNT;
+                missingAccountWarnings.add("Compte TVA manquant");
+            }
+        }
     }
 }
+
+
+
