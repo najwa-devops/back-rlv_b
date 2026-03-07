@@ -1,56 +1,40 @@
 package com.example.releve_bancaire.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Configuration
-@Slf4j
 public class CorsConfig {
-
-    @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:3001,http://localhost:3022}")
-    private String allowedOrigins;
 
     @Bean
     public CorsFilter corsFilter() {
+
         CorsConfiguration config = new CorsConfiguration();
 
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(origin -> !origin.isEmpty())
-                .toList();
+        // Allow all origins
+        config.addAllowedOriginPattern("*");
 
-        // With credentials=true, wildcard origins are invalid in allowedOrigins.
-        if (origins.contains("*")) {
-            log.warn("cors.allowed.origins contains '*': using allowedOriginPatterns instead.");
-            config.setAllowedOriginPatterns(origins);
-        } else {
-            config.setAllowedOrigins(origins);
-        }
+        // Allow all headers
+        config.addAllowedHeader("*");
 
-        // Autoriser toutes les methodes HTTP
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+        // Allow all HTTP methods
+        config.addAllowedMethod("*");
 
-        // Autoriser tous les headers
-        config.setAllowedHeaders(Arrays.asList("*"));
-
-        // Permettre les credentials
+        // Allow credentials (cookies, authorization headers)
         config.setAllowCredentials(true);
 
-        // Exposition des headers
-        config.setExposedHeaders(Arrays.asList(
-                "Content-Disposition",
-                "Content-Type",
-                "Content-Length"));
+        // Expose headers to the client
+        config.addExposedHeader("Content-Disposition");
+        config.addExposedHeader("Content-Type");
+        config.addExposedHeader("Content-Length");
+        config.addExposedHeader("Authorization");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        // Apply this configuration to all routes
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);
