@@ -2,7 +2,7 @@ package com.example.releve_bancaire.accounting_services;
 
 import com.example.releve_bancaire.accounting_entity.AccountingEntry;
 import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
-import com.example.releve_bancaire.accounting_repository.CptjournalJdbcRepository;
+import com.example.releve_bancaire.accounting_repository.CptjornalJdbcRepository;
 import com.example.releve_bancaire.accounting_repository.CptjournalSyncTrackerRepository;
 import com.example.releve_bancaire.banking_entity.BankStatement;
 import com.example.releve_bancaire.banking_entity.BankStatus;
@@ -37,7 +37,7 @@ public class ComptabilisationWorkflowService {
     private final BankStatementRepository bankStatementRepository;
     private final BankTransactionRepository bankTransactionRepository;
     private final AccountingEntryRepository accountingEntryRepository;
-    private final CptjournalJdbcRepository cptjournalJdbcRepository;
+    private final CptjornalJdbcRepository cptjornalJdbcRepository;
     private final CptjournalSyncTrackerRepository cptjournalSyncTrackerRepository;
 
     @Value("${accounting.default-journal:BQ}")
@@ -141,8 +141,8 @@ public class ComptabilisationWorkflowService {
         }
 
         List<AccountingEntry> entries = new ArrayList<>(context.rows().size());
-        List<CptjournalJdbcRepository.CptjournalRow> cptjournalRows = new ArrayList<>(context.rows().size());
-        long cptjournalBaseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+        List<CptjornalJdbcRepository.CptjornalRow> cptjornalRows = new ArrayList<>(context.rows().size());
+        long cptjornalBaseNumero = cptjornalJdbcRepository.findMaxNumero() + 1;
         for (SimulatedEntry row : context.rows()) {
             AccountingEntry entry = new AccountingEntry();
             entry.setNumero(row.numero());
@@ -161,10 +161,10 @@ public class ComptabilisationWorkflowService {
             entry.setBatchId(simulationId);
             entries.add(entry);
 
-            long numeroCptjournal = cptjournalBaseNumero + (row.numero() - 1L);
+            long numeroCptjornal = cptjornalBaseNumero + (row.numero() - 1L);
             LocalDate dateOperation = row.dateOperation();
-            cptjournalRows.add(new CptjournalJdbcRepository.CptjournalRow(
-                    numeroCptjournal,
+            cptjornalRows.add(new CptjornalJdbcRepository.CptjornalRow(
+                    numeroCptjornal,
                     context.journal(),
                     context.nmois(),
                     row.moisTexte(),
@@ -174,13 +174,12 @@ public class ComptabilisationWorkflowService {
                     row.credit(),
                     VALIDER_TRUE,
                     dateOperation,
-                    dateOperation.getDayOfMonth(),
-                    dateOperation.getYear(),
+                    dateOperation,
                     resolveMntRester(row.ncompte(), row.debit(), row.credit())));
         }
         accountingEntryRepository.saveAll(entries);
         if (!cptjournalSyncTrackerRepository.isSynced(context.statementId())) {
-            cptjournalJdbcRepository.insertAll(cptjournalRows);
+            cptjornalJdbcRepository.insertAll(cptjornalRows);
             cptjournalSyncTrackerRepository.markSynced(context.statementId());
         }
 
@@ -225,9 +224,9 @@ public class ComptabilisationWorkflowService {
                 .filter(n -> n != null)
                 .min(Long::compareTo)
                 .orElse(1L);
-        long baseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+        long baseNumero = cptjornalJdbcRepository.findMaxNumero() + 1;
 
-        List<CptjournalJdbcRepository.CptjournalRow> rows = new ArrayList<>(entries.size());
+        List<CptjornalJdbcRepository.CptjornalRow> rows = new ArrayList<>(entries.size());
         for (AccountingEntry entry : entries) {
             LocalDate date = entry.getDateComplete();
             if (date == null) {
@@ -236,7 +235,7 @@ public class ComptabilisationWorkflowService {
             long numero = baseNumero + (entry.getNumero() - minNumero);
             BigDecimal debit = entry.getDebit() == null ? BigDecimal.ZERO : entry.getDebit();
             BigDecimal credit = entry.getCredit() == null ? BigDecimal.ZERO : entry.getCredit();
-            rows.add(new CptjournalJdbcRepository.CptjournalRow(
+            rows.add(new CptjornalJdbcRepository.CptjornalRow(
                     numero,
                     entry.getNdosjrn(),
                     entry.getNmois(),
@@ -247,12 +246,11 @@ public class ComptabilisationWorkflowService {
                     credit,
                     VALIDER_TRUE,
                     date,
-                    date.getDayOfMonth(),
-                    date.getYear(),
+                    date,
                     resolveMntRester(entry.getNcompte(), debit, credit)));
         }
 
-        cptjournalJdbcRepository.insertAll(rows);
+        cptjornalJdbcRepository.insertAll(rows);
         cptjournalSyncTrackerRepository.markSynced(statementId);
         return rows.size();
     }

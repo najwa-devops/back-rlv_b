@@ -288,7 +288,7 @@ public class AccountingJournalController {
 
         TableRef table = resolveCptjornalTable();
         if (table == null) {
-            return new CptjornalSyncResult(false, 0, "Table cptjornal/Cptjournal introuvable");
+            return new CptjornalSyncResult(false, 0, "Table cptjornal introuvable");
         }
 
         Map<String, String> columns = resolveColumnMap(table);
@@ -415,9 +415,9 @@ public class AccountingJournalController {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(
                     "SELECT table_schema, table_name " +
                             "FROM information_schema.tables " +
-                            "WHERE table_name IN ('cptjornal', 'Cptjournal', 'cptjournal') " +
+                            "WHERE table_name IN ('cptjornal', 'Cptjornal', 'cptJornal') " +
                             "ORDER BY (table_schema = DATABASE()) DESC, " +
-                            "(table_name = 'cptjornal') DESC, (table_name = 'Cptjournal') DESC " +
+                            "(table_name = 'cptjornal') DESC, (table_name = 'Cptjornal') DESC " +
                             "LIMIT 1");
             if (rows.isEmpty()) {
                 return null;

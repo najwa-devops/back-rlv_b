@@ -1,11 +1,12 @@
 package com.example.releve_bancaire.controller.account_tier;
 
-import com.example.releve_bancaire.account_tier.Account;
+import com.example.releve_bancaire.account_tier.Compte;
 import com.example.releve_bancaire.banking_services.ExternalComptesCatalogService;
 import com.example.releve_bancaire.dto.account_tier.AccountDto;
 import com.example.releve_bancaire.entity.auth.UserRole;
 import com.example.releve_bancaire.dto.account_tier.CreateAccountRequest;
 import com.example.releve_bancaire.dto.account_tier.UpdateAccountRequest;
+import com.example.releve_bancaire.repository.CompteDao;
 import com.example.releve_bancaire.servises.account_tier.AccountService;
 import com.example.releve_bancaire.security.RequireRole;
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ public class AccountController {
 
     private final AccountService accountService;
     private final ExternalComptesCatalogService externalComptesCatalogService;
+    private final CompteDao compteDao;
 
     // ===================== CRÉATION =====================
     @PostMapping
@@ -57,18 +59,18 @@ public class AccountController {
     }
 
     // ===================== LECTURE =====================
-    @GetMapping("/{id}")
+    @GetMapping("/{numero}")
     @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
-    public ResponseEntity<?> getAccountById(@PathVariable Long id) {
-        log.debug("tierNumberGET /api/accounting/accounts/{}", id);
+    public ResponseEntity<?> getAccountById(@PathVariable String numero) {
+        log.debug("tierNumberGET /api/accounting/accounts/{}", numero);
 
-        Optional<AccountDto> accountOpt = accountService.getAccountById(id);
+        Optional<AccountDto> accountOpt = accountService.getAccountById(numero);
 
         if (accountOpt.isPresent()) {
             return ResponseEntity.ok(Map.of("account", accountOpt.get()));
         } else {
             Map<String, Object> errorResponse = Map.of(
-                    "error", "Compte non trouvé avec ID: " + id);
+                    "error", "Compte non trouvé avec le numero: " + numero);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
@@ -92,20 +94,68 @@ public class AccountController {
     @GetMapping
     @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
     public ResponseEntity<Map<String, Object>> getAllAccounts(
-            @RequestParam(defaultValue = "true") boolean activeOnly) {
-        log.debug("tierNumberGET /api/accounting/accounts (activeOnly={})", activeOnly);
+            @RequestParam(defaultValue = "true") boolean activeOnly,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) String query) {
+        log.debug("tierNumberGET /api/accounting/accounts (page={}, size={}, query={})", page, size, query);
         try {
-            List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+            List<Compte> allComptes;
+            
+            // Try external database first
+            try {
+                List<Compte> externalComptes = externalComptesCatalogService.loadAccounts();
+                
+                // If external is empty, fallback to local comptes table
+                if (externalComptes.isEmpty()) {
+                    log.info("External comptes empty, falling back to local comptes table");
+                    externalComptes = activeOnly 
+                        ? compteDao.findByActiveTrueOrderByNumeroAsc()
+                        : compteDao.findAllByOrderByNumeroAsc();
+                }
+                allComptes = externalComptes;
+            } catch (Exception e) {
+                log.warn("External comptes failed, falling back to local table: {}", e.getMessage());
+                // Fallback to local table on error
+                allComptes = activeOnly 
+                    ? compteDao.findByActiveTrueOrderByNumeroAsc()
+                    : compteDao.findAllByOrderByNumeroAsc();
+            }
+            
+            // Apply search filter if query provided
+            List<Compte> filteredComptes = allComptes;
+            if (query != null && !query.isBlank()) {
+                String searchQuery = query.toLowerCase().trim();
+                filteredComptes = allComptes.stream()
+                    .filter(c -> c.getNumero().toLowerCase().contains(searchQuery)
+                            || c.getLibelle().toLowerCase().contains(searchQuery))
+                    .toList();
+            }
+            
+            // Apply pagination
+            int total = filteredComptes.size();
+            int fromIndex = Math.min(page * size, total);
+            int toIndex = Math.min(fromIndex + size, total);
+            List<Compte> pagedComptes = filteredComptes.subList(fromIndex, toIndex);
+            
+            List<AccountDto> accounts = pagedComptes.stream()
                     .map(AccountDto::fromEntity)
                     .toList();
 
             return ResponseEntity.ok(Map.of(
                     "count", accounts.size(),
+                    "total", total,
+                    "page", page,
+                    "size", size,
+                    "totalPages", (int) Math.ceil((double) total / size),
                     "accounts", accounts));
         } catch (Exception e) {
             log.error("tierNumberErreur lecture comptes: {}", e.getMessage(), e);
             return ResponseEntity.ok(Map.of(
                     "count", 0,
+                    "total", 0,
+                    "page", page,
+                    "size", size,
                     "accounts", List.of()));
         }
     }
@@ -113,21 +163,61 @@ public class AccountController {
     // ===================== RECHERCHE =====================
     @GetMapping("/search")
     @RequireRole({ UserRole.ADMIN, UserRole.COMPTABLE })
-    public ResponseEntity<Map<String, Object>> searchAccounts(@RequestParam String query) {
-        log.debug("tierNumberGET /api/accounting/accounts/search?query={}", query);
-
-        List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
-                .filter(account -> query == null
-                        || query.isBlank()
-                        || account.getCode().toLowerCase().contains(query.toLowerCase())
-                        || account.getLibelle().toLowerCase().contains(query.toLowerCase()))
-                .map(AccountDto::fromEntity)
+    public ResponseEntity<Map<String, Object>> searchAccounts(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        log.debug("tierNumberGET /api/accounting/accounts/search?query={}, page={}, size={}", query, page, size);
+        
+        try {
+            List<Compte> allComptes;
+            
+            // Try external database first
+            try {
+                List<Compte> externalComptes = externalComptesCatalogService.loadAccounts();
+                if (externalComptes.isEmpty()) {
+                    log.info("External comptes empty, falling back to local comptes table");
+                    externalComptes = compteDao.findByActiveTrueOrderByNumeroAsc();
+                }
+                allComptes = externalComptes;
+            } catch (Exception e) {
+                log.warn("External comptes failed, falling back to local table: {}", e.getMessage());
+                allComptes = compteDao.findByActiveTrueOrderByNumeroAsc();
+            }
+            
+            // Apply search filter
+            String searchQuery = query != null ? query.toLowerCase().trim() : "";
+            List<Compte> filteredComptes = allComptes.stream()
+                .filter(c -> c.getNumero().toLowerCase().contains(searchQuery)
+                        || c.getLibelle().toLowerCase().contains(searchQuery))
                 .toList();
+            
+            // Apply pagination
+            int total = filteredComptes.size();
+            int fromIndex = Math.min(page * size, total);
+            int toIndex = Math.min(fromIndex + size, total);
+            List<Compte> pagedComptes = filteredComptes.subList(fromIndex, toIndex);
+            
+            List<AccountDto> accounts = pagedComptes.stream()
+                    .map(AccountDto::fromEntity)
+                    .toList();
 
-        return ResponseEntity.ok(Map.of(
-                "query", query,
-                "count", accounts.size(),
-                "accounts", accounts));
+            return ResponseEntity.ok(Map.of(
+                    "query", query,
+                    "count", accounts.size(),
+                    "total", total,
+                    "page", page,
+                    "size", size,
+                    "totalPages", (int) Math.ceil((double) total / size),
+                    "accounts", accounts));
+        } catch (Exception e) {
+            log.error("tierNumberErreur recherche comptes: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of(
+                    "query", query,
+                    "count", 0,
+                    "total", 0,
+                    "accounts", List.of()));
+        }
     }
 
     @GetMapping("/by-classe/{classe}")
@@ -159,7 +249,7 @@ public class AccountController {
         log.debug("tierNumberGET /api/accounting/accounts/fournisseurs");
 
         List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
-                .filter(Account::isFournisseurAccount)
+                .filter(account -> account.getNumero() != null && account.getNumero().startsWith("441"))
                 .map(AccountDto::fromEntity)
                 .toList();
 
@@ -175,7 +265,7 @@ public class AccountController {
         log.debug("tierNumberGET /api/accounting/accounts/charges");
 
         List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
-                .filter(Account::isChargeAccount)
+                .filter(account -> account.getClasse() != null && account.getClasse() == 6)
                 .map(AccountDto::fromEntity)
                 .toList();
 
@@ -191,7 +281,8 @@ public class AccountController {
         log.debug("tierNumberGET /api/accounting/accounts/tva");
 
         List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
-                .filter(Account::isTvaAccount)
+                .filter(account -> account.getClasse() != null && account.getClasse() == 3
+                        && account.getNumero() != null && account.getNumero().startsWith("3455"))
                 .map(AccountDto::fromEntity)
                 .toList();
 
@@ -202,16 +293,16 @@ public class AccountController {
     }
 
     // ===================== MISE À JOUR =====================
-    @PutMapping("/{id}")
+    @PutMapping("/{numero}")
     public ResponseEntity<Map<String, Object>> updateAccount(
-            @PathVariable Long id,
+            @PathVariable String numero,
             @Valid @RequestBody UpdateAccountRequest request) {
-        log.info("tierNumberPUT /api/accounting/accounts/{}", id);
+        log.info("tierNumberPUT /api/accounting/accounts/{}", numero);
 
         try {
-            AccountDto account = accountService.updateAccount(id, request);
+            AccountDto account = accountService.updateAccount(numero, request);
 
-            log.info("tierNumberCompte mis à jour: ID={}, Code={}", account.getId(), account.getCode());
+            log.info("tierNumberCompte mis à jour: numero={}", account.getCode());
 
             return ResponseEntity.ok(Map.of(
                     "message", "Compte mis à jour avec succès",
@@ -230,18 +321,18 @@ public class AccountController {
     }
 
     // ===================== SUPPRESSION (SOFT DELETE) =====================
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deactivateAccount(@PathVariable Long id) {
-        log.info("tierNumberDELETE /api/accounting/accounts/{}", id);
+    @DeleteMapping("/{numero}")
+    public ResponseEntity<Map<String, Object>> deactivateAccount(@PathVariable String numero) {
+        log.info("tierNumberDELETE /api/accounting/accounts/{}", numero);
 
         try {
-            accountService.deactivateAccount(id);
+            accountService.deactivateAccount(numero);
 
-            log.info("tierNumberCompte désactivé: ID={}", id);
+            log.info("tierNumberCompte désactivé: numero={}", numero);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Compte désactivé avec succès",
-                    "accountId", id));
+                    "accountNumero", numero));
 
         } catch (IllegalArgumentException e) {
             log.error("tierNumberErreur: {}", e.getMessage());
@@ -255,18 +346,18 @@ public class AccountController {
         }
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<Map<String, Object>> activateAccount(@PathVariable Long id) {
-        log.info("tierNumberPATCH /api/accounting/accounts/{}/activate", id);
+    @PatchMapping("/{numero}/activate")
+    public ResponseEntity<Map<String, Object>> activateAccount(@PathVariable String numero) {
+        log.info("tierNumberPATCH /api/accounting/accounts/{}/activate", numero);
 
         try {
-            accountService.activateAccount(id);
+            accountService.activateAccount(numero);
 
-            log.info("tierNumberCompte réactivé: ID={}", id);
+            log.info("tierNumberCompte réactivé: numero={}", numero);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Compte réactivé avec succès",
-                    "accountId", id));
+                    "accountNumero", numero));
 
         } catch (IllegalArgumentException e) {
             log.error("tierNumberErreur: {}", e.getMessage());

@@ -2,8 +2,8 @@ package com.example.releve_bancaire.banking_services;
 
 import com.example.releve_bancaire.banking_entity.BankTransactionAccountRule;
 import com.example.releve_bancaire.banking_repository.BankTransactionAccountRuleRepository;
-import com.example.releve_bancaire.account_tier.Account;
-import com.example.releve_bancaire.repository.AccountDao;
+import com.example.releve_bancaire.account_tier.Compte;
+import com.example.releve_bancaire.repository.CompteDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +32,7 @@ public class BankTransactionAccountLearningService {
             "VIR", "VIREMENT", "PAIEMENT", "PRELEVEMENT", "OPERATION", "CB", "WEB", "REF", "RECU", "EMIS");
 
     private final BankTransactionAccountRuleRepository repository;
-    private final AccountDao accountDao;
+    private final CompteDao compteDao;
 
     @Transactional
     public void learn(String libelle, String accountCode) {
@@ -98,9 +98,9 @@ public class BankTransactionAccountLearningService {
         if (!isPotentialAccountCode(code)) {
             return Optional.empty();
         }
-        return accountDao.findByCode(code)
-                .filter(a -> Boolean.TRUE.equals(a.getActive()))
-                .map(Account::getLibelle);
+        return compteDao.findByNumero(code)
+                .filter(c -> Boolean.TRUE.equals(c.getActive()))
+                .map(Compte::getLibelle);
     }
 
     @Transactional(readOnly = true)
@@ -116,11 +116,11 @@ public class BankTransactionAccountLearningService {
             return Map.of();
         }
 
-        List<Account> accounts = accountDao.findByCodeInAndActiveTrue(sanitizedCodes);
+        List<Compte> comptes = compteDao.findByNumeroInAndActiveTrue(sanitizedCodes);
         Map<String, String> labels = new LinkedHashMap<>();
-        for (Account account : accounts) {
-            if (account.getCode() != null && account.getLibelle() != null) {
-                labels.put(account.getCode().trim(), account.getLibelle());
+        for (Compte compte : comptes) {
+            if (compte.getNumero() != null && compte.getLibelle() != null) {
+                labels.put(compte.getNumero().trim(), compte.getLibelle());
             }
         }
         return labels;
@@ -170,8 +170,8 @@ public class BankTransactionAccountLearningService {
     }
 
     private Optional<String> findSuggestedAccountFromPlan(String normalizedLibelle) {
-        List<Account> accounts = accountDao.findByActiveTrueOrderByCodeAsc();
-        if (accounts.isEmpty()) {
+        List<Compte> comptes = compteDao.findByActiveTrueOrderByNumeroAsc();
+        if (comptes.isEmpty()) {
             return Optional.empty();
         }
 
@@ -179,13 +179,13 @@ public class BankTransactionAccountLearningService {
         double bestScore = 0.0;
         String bestCode = null;
 
-        for (Account account : accounts) {
-            String code = sanitizeAccountCode(account.getCode());
+        for (Compte compte : comptes) {
+            String code = sanitizeAccountCode(compte.getNumero());
             if (!isPotentialAccountCode(code)) {
                 continue;
             }
 
-            String normalizedAccountLibelle = normalize(account.getLibelle());
+            String normalizedAccountLibelle = normalize(compte.getLibelle());
             if (normalizedAccountLibelle.isBlank()) {
                 continue;
             }
@@ -248,7 +248,7 @@ public class BankTransactionAccountLearningService {
         String code = accountCode.trim();
         if (ACCOUNT_CODE_8_DIGITS.matcher(code).matches()) {
             String padded = code + "0";
-            if (accountDao.existsByCode(padded)) {
+            if (compteDao.existsByNumero(padded)) {
                 return padded;
             }
         }
@@ -258,7 +258,7 @@ public class BankTransactionAccountLearningService {
     private boolean isValidExistingAccount(String code) {
         return code != null
                 && ACCOUNT_CODE_9_DIGITS.matcher(code).matches()
-                && accountDao.existsByCode(code);
+                && compteDao.existsByNumero(code);
     }
 
     private boolean isPotentialAccountCode(String code) {

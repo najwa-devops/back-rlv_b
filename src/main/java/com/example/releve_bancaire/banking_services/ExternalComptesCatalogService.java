@@ -1,6 +1,6 @@
 package com.example.releve_bancaire.banking_services;
 
-import com.example.releve_bancaire.account_tier.Account;
+import com.example.releve_bancaire.account_tier.Compte;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class ExternalComptesCatalogService {
 
     private static final Pattern SIMPLE_IDENTIFIER = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
-    private static final Pattern NINE_DIGITS = Pattern.compile("^\\d{9}$");
+    private static final Pattern ACCOUNT_CODE = Pattern.compile("^\\d{4,10}$"); // 4-10 digits instead of exactly 9
 
     @Value("${external.comptes.jdbc-url:jdbc:mariadb://localhost/scan2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
     private String jdbcUrl;
@@ -39,48 +39,70 @@ public class ExternalComptesCatalogService {
     @Value("${external.comptes.libelle-column:libelle}")
     private String libelleColumn;
 
-    public List<Account> loadAccounts() {
-        log.info("Loading accounts from external database: jdbcUrl={}, table={}", jdbcUrl, table);
+    public List<Compte> loadAccounts() {
+        log.info("Loading comptes from external database: jdbcUrl={}, table={}, columns=[{}, {}]", 
+                jdbcUrl, table, numeroColumn, libelleColumn);
         String safeTable = sanitizeIdentifierOrThrow(table, "external.comptes.table");
         String safeNumeroColumn = sanitizeIdentifierOrThrow(numeroColumn, "external.comptes.numero-column");
         String safeLibelleColumn = sanitizeIdentifierOrThrow(libelleColumn, "external.comptes.libelle-column");
 
         String sql = "SELECT " + safeNumeroColumn + " AS numero, " + safeLibelleColumn + " AS libelle " +
                 "FROM " + safeTable + " ORDER BY " + safeNumeroColumn + " ASC";
+        log.info("Executing SQL: {}", sql);
 
-        List<Account> accounts = new ArrayList<>();
+        List<Compte> comptes = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet rs = statement.executeQuery()) {
 
-            long generatedId = 1L;
+            int totalRows = 0;
+            int filteredRows = 0;
+            int invalidCodeRows = 0;
+            int blankLibelleRows = 0;
+            
             while (rs.next()) {
+                totalRows++;
                 String code = normalize(rs.getString("numero"));
                 String libelle = normalize(rs.getString("libelle"));
-                if (!NINE_DIGITS.matcher(code).matches()) {
+                
+                if (!ACCOUNT_CODE.matcher(code).matches()) {
+                    if (invalidCodeRows < 5) {
+                        log.debug("Skipping account with invalid code format: '{}' (row {})", code, totalRows);
+                    }
+                    invalidCodeRows++;
+                    filteredRows++;
                     continue;
                 }
                 if (libelle.isBlank()) {
+                    if (blankLibelleRows < 5) {
+                        log.debug("Skipping account with blank libelle: '{}' (row {})", code, totalRows);
+                    }
+                    blankLibelleRows++;
+                    filteredRows++;
                     continue;
                 }
-                accounts.add(toAccount(generatedId++, code, libelle));
+                comptes.add(toCompte(code, libelle));
             }
-            log.info("Loaded {} accounts from external database", accounts.size());
+            log.info("Loaded {} comptes from external database (total rows: {}, filtered: {}, invalid codes: {}, blank libelles: {})", 
+                    comptes.size(), totalRows, filteredRows, invalidCodeRows, blankLibelleRows);
+            
+            if (comptes.isEmpty() && totalRows > 0) {
+                log.warn("All rows were filtered out! Check account code format (should be 4-10 digits) and libelle (should not be blank)");
+            }
         } catch (SQLException e) {
-            log.error("Failed to load accounts from external database: jdbcUrl={}, error={}", jdbcUrl, e.getMessage(), e);
+            log.error("Failed to load comptes from external database: jdbcUrl={}, error={}", jdbcUrl, e.getMessage(), e);
             throw new IllegalStateException("Impossible de lire la table distante Comptes (" + jdbcUrl + "): " + e.getMessage(), e);
         }
-        return accounts;
+        return comptes;
     }
 
-    private Account toAccount(long id, String code, String libelle) {
-        Account account = new Account();
-        account.setId(id);
-        account.setCode(code);
-        account.setLibelle(libelle);
-        account.setClasse(deriveClasse(code));
-        account.setActive(true);
-        return account;
+    private Compte toCompte(String code, String libelle) {
+        Compte compte = new Compte();
+        compte.setNumero(code);
+        compte.setLibelle(libelle);
+        compte.setClasse(deriveClasse(code));
+        compte.setActive(true);
+        return compte;
     }
 
     private int deriveClasse(String code) {
@@ -112,4 +134,3 @@ public class ExternalComptesCatalogService {
         return value.trim();
     }
 }
-

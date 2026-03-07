@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface AccountDao extends JpaRepository<Compte, String> {
+public interface CompteDao extends JpaRepository<Compte, String> {
 
     // ===================== RECHERCHE PAR NUMERO =====================
     Optional<Compte> findByNumero(String numero);
@@ -69,4 +69,3 @@ public interface AccountDao extends JpaRepository<Compte, String> {
     @Query("SELECT COUNT(c) FROM Compte c WHERE c.classe = :classe AND c.active = true")
     long countActiveByClasse(@Param("classe") Integer classe);
 }
-

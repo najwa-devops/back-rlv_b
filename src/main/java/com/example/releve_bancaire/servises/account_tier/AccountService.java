@@ -1,10 +1,10 @@
 package com.example.releve_bancaire.servises.account_tier;
 
-import com.example.releve_bancaire.account_tier.Account;
+import com.example.releve_bancaire.account_tier.Compte;
 import com.example.releve_bancaire.dto.account_tier.AccountDto;
 import com.example.releve_bancaire.dto.account_tier.CreateAccountRequest;
 import com.example.releve_bancaire.dto.account_tier.UpdateAccountRequest;
-import com.example.releve_bancaire.repository.AccountDao;
+import com.example.releve_bancaire.repository.CompteDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountService {
 
-    private final AccountDao accountDao;
+    private final CompteDao compteDao;
 
     // ===================== CRUD =====================
 
@@ -29,34 +29,33 @@ public class AccountService {
      * Crée un nouveau compte
      * @param request Données du compte à créer
      * @return DTO du compte créé
-     * @throws IllegalArgumentException si le code existe déjà
+     * @throws IllegalArgumentException si le numero existe déjà
      */
     @Transactional
     public AccountDto createAccount(CreateAccountRequest request) {
-        log.info("Creation compte: code={}, libelle={}", request.getCode(), request.getLibelle());
+        log.info("Creation compte: numero={}, libelle={}", request.getCode(), request.getLibelle());
         request.validate();
 
-        // Validation unicite du code
-        if (accountDao.existsByCode(request.getCode())) {
-            throw new IllegalArgumentException("Un compte avec le code " + request.getCode() + " existe deja");
+        // Validation unicite du numero
+        if (compteDao.existsByNumero(request.getCode())) {
+            throw new IllegalArgumentException("Un compte avec le numero " + request.getCode() + " existe deja");
         }
 
         Integer classe = deriveClasseFromCode(request.getCode());
 
         // Creation de l'entite
-        Account account = Account.builder()
-                .code(request.getCode())
+        Compte compte = Compte.builder()
+                .numero(request.getCode())
                 .libelle(request.getLibelle())
                 .classe(classe)
-                .tvaRate(request.getTvaRate())
+                .taux(request.getTvaRate())
                 .active(request.getActive() != null ? request.getActive() : true)
-                .createdBy(request.getCreatedBy())
                 .build();
 
-        Account saved = accountDao.save(account);
+        Compte saved = compteDao.save(compte);
 
-        log.info("Compte cree: ID={}, code={}, classe={}",
-                saved.getId(), saved.getCode(), saved.getClasse());
+        log.info("Compte cree: ID={}, numero={}, classe={}",
+                saved.getId(), saved.getNumero(), saved.getClasse());
 
         return AccountDto.fromEntity(saved);
     }
@@ -85,69 +84,65 @@ public class AccountService {
 
     /**
      * Met à jour un compte existant
-     * @param id ID du compte
+     * @param numero Numéro du compte
      * @param request Nouvelles données
      * @return DTO du compte mis à jour
      * @throws IllegalArgumentException si le compte n'existe pas
      */
     @Transactional
-    public AccountDto updateAccount(Long id, UpdateAccountRequest request) {
-        log.info("Mise à jour compte ID={}", id);
+    public AccountDto updateAccount(String numero, UpdateAccountRequest request) {
+        log.info("Mise à jour compte numero={}", numero);
 
-        Account account = accountDao.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + id));
+        Compte compte = compteDao.findById(numero)
+                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + numero));
 
         // Mise à jour des champs modifiables
         if (request.getLibelle() != null && !request.getLibelle().isBlank()) {
-            account.setLibelle(request.getLibelle());
+            compte.setLibelle(request.getLibelle());
             log.debug("  Libellé mis à jour: {}", request.getLibelle());
         }
 
         if (request.getActive() != null) {
-            account.setActive(request.getActive());
+            compte.setActive(request.getActive());
             log.debug("  Statut actif mis à jour: {}", request.getActive());
         }
 
-        if (request.getUpdatedBy() != null) {
-            account.setUpdatedBy(request.getUpdatedBy());
-        }
-
-        Account saved = accountDao.save(account);
-        log.info("Compte mis à jour: ID={}, code={}", saved.getId(), saved.getCode());
+        Compte saved = compteDao.save(compte);
+        log.info("Compte mis à jour: ID={}, numero={}", saved.getId(), saved.getNumero());
 
         return AccountDto.fromEntity(saved);
     }
 
     /**
      * Récupère un compte par son ID
-     * @param id ID du compte
+     * @param numero Numéro du compte
      * @return DTO du compte
      */
     @Transactional(readOnly = true)
-    public Optional<AccountDto> getAccountById(Long id) {
-        return accountDao.findById(id)
+    public Optional<AccountDto> getAccountById(String numero) {
+        return compteDao.findById(numero)
                 .map(AccountDto::fromEntity);
     }
 
     /**
-     * Récupère un compte par son code
-     * @param code Code du compte
+     * Récupère un compte par son numero
+     * @param numero Numero du compte
      * @return DTO du compte
      */
     @Transactional(readOnly = true)
-    public Optional<AccountDto> getAccountByCode(String code) {
-        return accountDao.findByCode(code)
+    public Optional<AccountDto> getAccountByCode(String numero) {
+        return compteDao.findByNumero(numero)
                 .map(AccountDto::fromEntity);
     }
 
     /**
-     * Récupère tous les comptes actifs, triés par code
+     * Récupère tous les comptes actifs, triés par numero
      * @return Liste des comptes actifs
      */
     @Transactional(readOnly = true)
     public List<AccountDto> getAllActiveAccounts() {
         try {
-            return accountDao.findByActiveTrueOrderByCodeAsc().stream()
+            return compteDao.findByActiveTrueOrderByNumeroAsc().stream()
                     .map(AccountDto::fromEntity)
                     .collect(Collectors.toList());
         } catch (DataAccessException e) {
@@ -157,13 +152,13 @@ public class AccountService {
     }
 
     /**
-     * Récupère tous les comptes (actifs et inactifs), triés par code
+     * Récupère tous les comptes (actifs et inactifs), triés par numero
      * @return Liste de tous les comptes
      */
     @Transactional(readOnly = true)
     public List<AccountDto> getAllAccounts() {
         try {
-            return accountDao.findAllByOrderByCodeAsc().stream()
+            return compteDao.findAllByOrderByNumeroAsc().stream()
                     .map(AccountDto::fromEntity)
                     .collect(Collectors.toList());
         } catch (DataAccessException e) {
@@ -174,38 +169,38 @@ public class AccountService {
 
     /**
      * Désactive un compte (soft delete)
-     * @param id ID du compte
+     * @param numero Numéro du compte
      * @throws IllegalArgumentException si le compte n'existe pas
      */
     @Transactional
-    public void deactivateAccount(Long id) {
-        log.info("Désactivation compte ID={}", id);
+    public void deactivateAccount(String numero) {
+        log.info("Désactivation compte numero={}", numero);
 
-        Account account = accountDao.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + id));
+        Compte compte = compteDao.findById(numero)
+                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + numero));
 
-        account.deactivate();
-        accountDao.save(account);
+        compte.deactivate();
+        compteDao.save(compte);
 
-        log.info("Compte désactivé: ID={}, code={}", account.getId(), account.getCode());
+        log.info("Compte désactivé: ID={}, numero={}", compte.getNumero(), compte.getNumero());
     }
 
     /**
      * Réactive un compte
-     * @param id ID du compte
+     * @param numero Numéro du compte
      * @throws IllegalArgumentException si le compte n'existe pas
      */
     @Transactional
-    public void activateAccount(Long id) {
-        log.info("Activation compte ID={}", id);
+    public void activateAccount(String numero) {
+        log.info("Activation compte numero={}", numero);
 
-        Account account = accountDao.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + id));
+        Compte compte = compteDao.findById(numero)
+                .orElseThrow(() -> new IllegalArgumentException("Compte non trouvé: " + numero));
 
-        account.activate();
-        accountDao.save(account);
+        compte.activate();
+        compteDao.save(compte);
 
-        log.info("Compte activé: ID={}, code={}", account.getId(), account.getCode());
+        log.info("Compte activé: ID={}, numero={}", compte.getNumero(), compte.getNumero());
     }
 
     // ===================== RECHERCHE PAR CLASSE =====================
@@ -223,7 +218,7 @@ public class AccountService {
             throw new IllegalArgumentException("La classe doit être entre 1 et 8");
         }
 
-        return accountDao.findByClasseAndActiveTrue(classe).stream()
+        return compteDao.findByClasseAndActiveTrue(classe).stream()
                 .map(AccountDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -238,7 +233,7 @@ public class AccountService {
     public List<AccountDto> getFournisseurAccounts() {
         log.debug("Recherche comptes fournisseurs (441XXX)");
 
-        return accountDao.findFournisseurAccounts().stream()
+        return compteDao.findFournisseurAccounts().stream()
                 .map(AccountDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -251,7 +246,7 @@ public class AccountService {
     public List<AccountDto> getChargeAccounts() {
         log.debug("Recherche comptes de charge (classe 6)");
 
-        return accountDao.findChargeAccounts().stream()
+        return compteDao.findChargeAccounts().stream()
                 .map(AccountDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -264,7 +259,7 @@ public class AccountService {
     public List<AccountDto> getTvaAccounts() {
         log.debug("Recherche comptes TVA (3455XX)");
 
-        return accountDao.findTvaAccounts().stream()
+        return compteDao.findTvaAccounts().stream()
                 .map(AccountDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -272,7 +267,7 @@ public class AccountService {
     // ===================== RECHERCHE =====================
 
     /**
-     * Recherche des comptes par code ou libellé
+     * Recherche des comptes par numero ou libellé
      * @param query Texte de recherche
      * @return Liste des comptes correspondants (actifs uniquement)
      */
@@ -284,7 +279,7 @@ public class AccountService {
             return getAllActiveAccounts();
         }
 
-        return accountDao.searchActive(query).stream()
+        return compteDao.searchActive(query).stream()
                 .map(AccountDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -299,18 +294,18 @@ public class AccountService {
     public Map<String, Object> getStatistics() {
         log.debug("Récupération statistiques plan comptable");
 
-        long totalAccounts = accountDao.count();
-        long activeAccounts = accountDao.countByActiveTrue();
+        long totalComptes = compteDao.count();
+        long activeComptes = compteDao.countByActiveTrue();
 
         Map<String, Object> stats = new java.util.LinkedHashMap<>();
-        stats.put("totalAccounts", totalAccounts);
-        stats.put("activeAccounts", activeAccounts);
-        stats.put("inactiveAccounts", totalAccounts - activeAccounts);
+        stats.put("totalAccounts", totalComptes);
+        stats.put("activeAccounts", activeComptes);
+        stats.put("inactiveAccounts", totalComptes - activeComptes);
 
         // Statistiques par classe
         Map<Integer, Long> byClasse = new java.util.LinkedHashMap<>();
         for (int i = 1; i <= 8; i++) {
-            long count = accountDao.countByClasse(i);
+            long count = compteDao.countByClasse(i);
             if (count > 0) {
                 byClasse.put(i, count);
             }
@@ -318,9 +313,9 @@ public class AccountService {
         stats.put("byClasse", byClasse);
 
         // Comptes spéciaux
-        stats.put("fournisseurAccounts", accountDao.findFournisseurAccounts().size());
-        stats.put("chargeAccounts", accountDao.findChargeAccounts().size());
-        stats.put("tvaAccounts", accountDao.findTvaAccounts().size());
+        stats.put("fournisseurAccounts", compteDao.findFournisseurAccounts().size());
+        stats.put("chargeAccounts", compteDao.findChargeAccounts().size());
+        stats.put("tvaAccounts", compteDao.findTvaAccounts().size());
 
         return stats;
     }
@@ -343,7 +338,7 @@ public class AccountService {
         for (CreateAccountRequest request : requests) {
             try {
                 // Vérifier si le compte existe déjà
-                if (accountDao.existsByCode(request.getCode())) {
+                if (compteDao.existsByNumero(request.getCode())) {
                     log.warn("Compte {} déjà existant, ignoré", request.getCode());
                     errorCount++;
                     continue;
@@ -373,7 +368,7 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public boolean accountExists(String code) {
-        return accountDao.existsByCode(code);
+        return compteDao.existsByNumero(code);
     }
 
     /**
@@ -383,8 +378,8 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public boolean accountExistsAndActive(String code) {
-        return accountDao.findByCode(code)
-                .map(Account::getActive)
+        return compteDao.findByNumero(code)
+                .map(Compte::getActive)
                 .orElse(false);
     }
 

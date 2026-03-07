@@ -1,6 +1,6 @@
 package com.example.releve_bancaire.dto.account_tier;
 
-import com.example.releve_bancaire.account_tier.Account;
+import com.example.releve_bancaire.account_tier.Compte;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,29 +36,26 @@ public class AccountDto {
     private String updatedBy;
 
     /**
-     * Convertit une entité Account en DTO
+     * Convertit une entité Compte en DTO
      */
-    public static AccountDto fromEntity(Account entity) {
+    public static AccountDto fromEntity(Compte entity) {
         if (entity == null)
             return null;
 
         return AccountDto.builder()
-                .id(entity.getId())
-                .code(entity.getCode())
+                .code(entity.getNumero())
                 .libelle(entity.getLibelle())
                 .classe(entity.getClasse())
                 .classeName(entity.getClasseName())
-                .tvaRate(entity.getTvaRate())
+                .tvaRate(entity.getTaux())
                 .active(entity.getActive())
                 .isFournisseurAccount(entity.isFournisseurAccount())
                 .isChargeAccount(entity.isChargeAccount())
                 .isTvaAccount(entity.isTvaAccount())
-                .displayWithTva(entity.getDisplayWithTva())
+                .displayWithTva(entity.getDisplayWithTaux())
                 .tvaDescription(entity.getTvaDescription())
-                .createdAt(entity.getCreatedAt())
+                .createdAt(entity.getDatcree())
                 .updatedAt(entity.getUpdatedAt())
-                .createdBy(entity.getCreatedBy())
-                .updatedBy(entity.getUpdatedBy())
                 .build();
     }
 
