@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Centre Monétique OCR</title>
+  <link rel="stylesheet" href="/centre-monetique/styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="panel hero">
+      <h1>Centre Monétique OCR</h1>
+      <p>Upload PDF ou photo, extraction structurée, historique en base.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Nouvel Upload</h2>
+      <form id="upload-form" class="form-grid">
+        <label>
+          Fichier
+          <input id="file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff" required />
+        </label>
+        <label>
+          Année (optionnel)
+          <input id="year" name="year" type="number" min="1900" max="2100" placeholder="ex: 2022" />
+        </label>
+        <button type="submit">Uploader et extraire</button>
+      </form>
+      <pre id="upload-status" class="status"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>Historique</h2>
+      <div class="history-actions">
+        <button id="refresh-history" type="button">Rafraîchir</button>
+      </div>
+      <div id="history"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Détail Extraction</h2>
+      <div id="detail"></div>
+      <h3>JSON</h3>
+      <pre id="json-result" class="json"></pre>
+    </section>
+  </main>
+
+  <script src="/centre-monetique/app.js"></script>
+</body>
+</html>
