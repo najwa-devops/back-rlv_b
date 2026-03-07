@@ -1,5 +1,7 @@
 package com.example.releve_bancaire.controller.account_tier;
 
+import com.example.releve_bancaire.account_tier.Account;
+import com.example.releve_bancaire.banking_services.ExternalComptesCatalogService;
 import com.example.releve_bancaire.dto.account_tier.AccountDto;
 import com.example.releve_bancaire.entity.auth.UserRole;
 import com.example.releve_bancaire.dto.account_tier.CreateAccountRequest;
@@ -26,6 +28,7 @@ import java.util.Optional;
 public class AccountController {
 
     private final AccountService accountService;
+    private final ExternalComptesCatalogService externalComptesCatalogService;
 
     // ===================== CRÉATION =====================
     @PostMapping
@@ -91,14 +94,20 @@ public class AccountController {
     public ResponseEntity<Map<String, Object>> getAllAccounts(
             @RequestParam(defaultValue = "true") boolean activeOnly) {
         log.debug("tierNumberGET /api/accounting/accounts (activeOnly={})", activeOnly);
+        try {
+            List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                    .map(AccountDto::fromEntity)
+                    .toList();
 
-        List<AccountDto> accounts = activeOnly
-                ? accountService.getAllActiveAccounts()
-                : accountService.getAllAccounts();
-
-        return ResponseEntity.ok(Map.of(
-                "count", accounts.size(),
-                "accounts", accounts));
+            return ResponseEntity.ok(Map.of(
+                    "count", accounts.size(),
+                    "accounts", accounts));
+        } catch (Exception e) {
+            log.error("tierNumberErreur lecture comptes: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of(
+                    "count", 0,
+                    "accounts", List.of()));
+        }
     }
 
     // ===================== RECHERCHE =====================
@@ -107,7 +116,13 @@ public class AccountController {
     public ResponseEntity<Map<String, Object>> searchAccounts(@RequestParam String query) {
         log.debug("tierNumberGET /api/accounting/accounts/search?query={}", query);
 
-        List<AccountDto> accounts = accountService.searchAccounts(query);
+        List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                .filter(account -> query == null
+                        || query.isBlank()
+                        || account.getCode().toLowerCase().contains(query.toLowerCase())
+                        || account.getLibelle().toLowerCase().contains(query.toLowerCase()))
+                .map(AccountDto::fromEntity)
+                .toList();
 
         return ResponseEntity.ok(Map.of(
                 "query", query,
@@ -121,7 +136,10 @@ public class AccountController {
         log.debug("tierNumberGET /api/accounting/accounts/by-classe/{}", classe);
 
         try {
-            List<AccountDto> accounts = accountService.getAccountsByClasse(classe);
+            List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                    .filter(account -> account.getClasse() != null && account.getClasse().equals(classe))
+                    .map(AccountDto::fromEntity)
+                    .toList();
 
             return ResponseEntity.ok(Map.of(
                     "classe", classe,
@@ -140,7 +158,10 @@ public class AccountController {
     public ResponseEntity<Map<String, Object>> getFournisseurAccounts() {
         log.debug("tierNumberGET /api/accounting/accounts/fournisseurs");
 
-        List<AccountDto> accounts = accountService.getFournisseurAccounts();
+        List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                .filter(Account::isFournisseurAccount)
+                .map(AccountDto::fromEntity)
+                .toList();
 
         return ResponseEntity.ok(Map.of(
                 "type", "fournisseurs",
@@ -153,7 +174,10 @@ public class AccountController {
     public ResponseEntity<Map<String, Object>> getChargeAccounts() {
         log.debug("tierNumberGET /api/accounting/accounts/charges");
 
-        List<AccountDto> accounts = accountService.getChargeAccounts();
+        List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                .filter(Account::isChargeAccount)
+                .map(AccountDto::fromEntity)
+                .toList();
 
         return ResponseEntity.ok(Map.of(
                 "type", "charges",
@@ -166,7 +190,10 @@ public class AccountController {
     public ResponseEntity<Map<String, Object>> getTvaAccounts() {
         log.debug("tierNumberGET /api/accounting/accounts/tva");
 
-        List<AccountDto> accounts = accountService.getTvaAccounts();
+        List<AccountDto> accounts = externalComptesCatalogService.loadAccounts().stream()
+                .filter(Account::isTvaAccount)
+                .map(AccountDto::fromEntity)
+                .toList();
 
         return ResponseEntity.ok(Map.of(
                 "type", "tva",

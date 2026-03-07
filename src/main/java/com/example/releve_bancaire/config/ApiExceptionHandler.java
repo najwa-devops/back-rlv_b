@@ -48,6 +48,18 @@ public class ApiExceptionHandler {
                 request.getRequestURI());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(
+            IllegalStateException ex,
+            HttpServletRequest request) {
+        log.error("Erreur metier [{}]: {}", request.getRequestURI(), ex.getMessage(), ex);
+        return build(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Service indisponible",
+                ex.getMessage() != null ? ex.getMessage() : "Une erreur inattendue s'est produite",
+                request.getRequestURI());
+    }
+
     private ResponseEntity<Map<String, Object>> build(
             HttpStatus status,
             String error,

@@ -1,6 +1,7 @@
 package com.example.releve_bancaire.banking_services;
 
 import com.example.releve_bancaire.account_tier.Account;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +15,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class ExternalComptesCatalogService {
 
     private static final Pattern SIMPLE_IDENTIFIER = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]*$");
     private static final Pattern NINE_DIGITS = Pattern.compile("^\\d{9}$");
 
-    @Value("${external.comptes.jdbc-url:jdbc:mariadb://172.20.1.11:3306/rlvb_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
+    @Value("${external.comptes.jdbc-url:jdbc:mariadb://localhost/scan2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
     private String jdbcUrl;
 
     @Value("${external.comptes.username:root}")
@@ -38,6 +40,7 @@ public class ExternalComptesCatalogService {
     private String libelleColumn;
 
     public List<Account> loadAccounts() {
+        log.info("Loading accounts from external database: jdbcUrl={}, table={}", jdbcUrl, table);
         String safeTable = sanitizeIdentifierOrThrow(table, "external.comptes.table");
         String safeNumeroColumn = sanitizeIdentifierOrThrow(numeroColumn, "external.comptes.numero-column");
         String safeLibelleColumn = sanitizeIdentifierOrThrow(libelleColumn, "external.comptes.libelle-column");
@@ -62,8 +65,10 @@ public class ExternalComptesCatalogService {
                 }
                 accounts.add(toAccount(generatedId++, code, libelle));
             }
+            log.info("Loaded {} accounts from external database", accounts.size());
         } catch (SQLException e) {
-            throw new IllegalStateException("Impossible de lire la table distante Comptes (" + jdbcUrl + ")", e);
+            log.error("Failed to load accounts from external database: jdbcUrl={}, error={}", jdbcUrl, e.getMessage(), e);
+            throw new IllegalStateException("Impossible de lire la table distante Comptes (" + jdbcUrl + "): " + e.getMessage(), e);
         }
         return accounts;
     }

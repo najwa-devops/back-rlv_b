@@ -78,7 +78,7 @@ public class AccountSeedMigration implements CommandLineRunner {
                 new AccountRow("626000000", "Frais postaux et télécommunications", 6),
                 new AccountRow("627000000", "Services bancaires", 6),
                 new AccountRow("631000000", "Impôts et taxes", 6),
-                new AccountRow("661000000un dev", "Charges d’intérêts", 6),
+                new AccountRow("661000000", "Charges d’intérêts", 6),
 
                 // ===== CLASSE 7 – Produits =====
                 new AccountRow("711000000", "Ventes de marchandises", 7),

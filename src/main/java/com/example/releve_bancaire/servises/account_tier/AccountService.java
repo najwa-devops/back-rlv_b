@@ -7,6 +7,7 @@ import com.example.releve_bancaire.dto.account_tier.UpdateAccountRequest;
 import com.example.releve_bancaire.repository.AccountDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,9 +146,14 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public List<AccountDto> getAllActiveAccounts() {
-        return accountDao.findByActiveTrueOrderByCodeAsc().stream()
-                .map(AccountDto::fromEntity)
-                .collect(Collectors.toList());
+        try {
+            return accountDao.findByActiveTrueOrderByCodeAsc().stream()
+                    .map(AccountDto::fromEntity)
+                    .collect(Collectors.toList());
+        } catch (DataAccessException e) {
+            log.error("Lecture comptes actifs impossible: {}", e.getMessage(), e);
+            return List.of();
+        }
     }
 
     /**
@@ -156,9 +162,14 @@ public class AccountService {
      */
     @Transactional(readOnly = true)
     public List<AccountDto> getAllAccounts() {
-        return accountDao.findAllByOrderByCodeAsc().stream()
-                .map(AccountDto::fromEntity)
-                .collect(Collectors.toList());
+        try {
+            return accountDao.findAllByOrderByCodeAsc().stream()
+                    .map(AccountDto::fromEntity)
+                    .collect(Collectors.toList());
+        } catch (DataAccessException e) {
+            log.error("Lecture de tous les comptes impossible: {}", e.getMessage(), e);
+            return List.of();
+        }
     }
 
     /**
