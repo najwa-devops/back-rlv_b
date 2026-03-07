@@ -7,7 +7,7 @@ COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw mvnw
 COPY mvnw.cmd mvnw.cmd
-RUN chmod +x mvnw
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN --mount=type=cache,target=/root/.m2 \
     sh -c 'for i in 1 2 3; do ./mvnw -B -DskipTests -Dmaven.wagon.http.retryHandler.count=5 dependency:go-offline && exit 0; echo "dependency:go-offline failed (attempt $i), retrying..."; sleep 5; done; exit 1'
 

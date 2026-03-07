@@ -1,0 +1,2000 @@
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointConfiguration#healthEndpointGroups matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.health.HealthEndpointGroups; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointConfiguration#healthHttpCodeStatusMapper matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.health.HttpCodeStatusMapper; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointConfiguration#healthStatusAggregator matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.health.StatusAggregator; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointWebExtensionConfiguration matched:
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnAvailableEndpoint marked as exposed by a 'management.endpoints.web.exposure' property (OnAvailableEndpointCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.boot.actuate.health.HealthEndpoint; SearchStrategy: all) found bean 'healthEndpoint' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointWebExtensionConfiguration#healthEndpointWebExtension matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.health.HealthEndpointWebExtension; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointWebExtensionConfiguration.MvcAdditionalHealthEndpointPathsConfiguration matched:
+rlvb-backend  |       - @ConditionalOnAvailableEndpoint marked as exposed by a 'management.endpoints.web.exposure' property (OnAvailableEndpointCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.web.servlet.DispatcherServlet; SearchStrategy: all) found bean 'dispatcherServlet' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HibernateJpaAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean', 'jakarta.persistence.EntityManager', 'org.hibernate.engine.spi.SessionImplementor' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HibernateJpaConfiguration matched:
+rlvb-backend  |       - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpClientObservationsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.observation.Observation' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.observation.ObservationRegistry; SearchStrategy: all) found bean 'observationRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpClientObservationsAutoConfiguration.MeterFilterConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpEncodingAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.filter.CharacterEncodingFilter' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnProperty (server.servlet.encoding.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpEncodingAutoConfiguration#characterEncodingFilter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.filter.CharacterEncodingFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpMessageConvertersAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.http.converter.HttpMessageConverter' (OnClassCondition)
+rlvb-backend  |       - NoneNestedConditions 0 matched 1 did not; NestedCondition on HttpMessageConvertersAutoConfiguration.NotReactiveWebApplicationCondition.ReactiveWebApplication did not find reactive web application classes (HttpMessageConvertersAutoConfiguration.NotReactiveWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpMessageConvertersAutoConfiguration#messageConverters matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.http.HttpMessageConverters; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpMessageConvertersAutoConfiguration.StringHttpMessageConverterConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.http.converter.StringHttpMessageConverter' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpMessageConvertersAutoConfiguration.StringHttpMessageConverterConfiguration#stringHttpMessageConverter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.http.converter.StringHttpMessageConverter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoEndpointAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnAvailableEndpoint marked as exposed by a 'management.endpoints.web.exposure' property (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoEndpointAutoConfiguration#infoEndpoint matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.info.InfoEndpoint; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'com.fasterxml.jackson.databind.ObjectMapper' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.Jackson2ObjectMapperBuilderCustomizerConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.http.converter.json.Jackson2ObjectMapperBuilder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.JacksonObjectMapperBuilderConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.http.converter.json.Jackson2ObjectMapperBuilder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.JacksonObjectMapperBuilderConfiguration#jacksonObjectMapperBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.http.converter.json.Jackson2ObjectMapperBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.JacksonObjectMapperConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.http.converter.json.Jackson2ObjectMapperBuilder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.JacksonObjectMapperConfiguration#jacksonObjectMapper matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: com.fasterxml.jackson.databind.ObjectMapper; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.ParameterNamesModuleConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'com.fasterxml.jackson.module.paramnames.ParameterNamesModule' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonAutoConfiguration.ParameterNamesModuleConfiguration#parameterNamesModule matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: com.fasterxml.jackson.module.paramnames.ParameterNamesModule; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonEndpointAutoConfiguration#endpointObjectMapper matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'com.fasterxml.jackson.databind.ObjectMapper', 'org.springframework.http.converter.json.Jackson2ObjectMapperBuilder' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnProperty (management.endpoints.jackson.isolated-object-mapper) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonHttpMessageConvertersConfiguration.MappingJackson2HttpMessageConverterConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'com.fasterxml.jackson.databind.ObjectMapper' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnProperty (spring.mvc.converters.preferred-json-mapper=jackson) matched (OnPropertyCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: com.fasterxml.jackson.databind.ObjectMapper; SearchStrategy: all) found bean 'jacksonObjectMapper' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonHttpMessageConvertersConfiguration.MappingJackson2HttpMessageConverterConfiguration#mappingJackson2HttpMessageConverter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.http.converter.json.MappingJackson2HttpMessageConverter ignored: org.springframework.hateoas.server.mvc.TypeConstrainedMappingJackson2HttpMessageConverter,org.springframework.data.rest.webmvc.alps.AlpsJsonHttpMessageConverter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JdbcClientAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnSingleCandidate (types: org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate; SearchStrategy: all) found a single bean 'namedParameterJdbcTemplate'; @ConditionalOnMissingBean (types: org.springframework.jdbc.core.simple.JdbcClient; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JdbcTemplateAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.core.JdbcTemplate' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JdbcTemplateConfiguration matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.jdbc.core.JdbcOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration#entityManagerFactory matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean,jakarta.persistence.EntityManagerFactory; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration#entityManagerFactoryBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration#jpaVendorAdapter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.JpaVendorAdapter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration#transactionManager matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration.PersistenceManagedTypesConfiguration matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean,jakarta.persistence.EntityManagerFactory; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration.PersistenceManagedTypesConfiguration#persistenceManagedTypes matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaRepositoriesAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.data.jpa.repository.JpaRepository' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnProperty (spring.data.jpa.repositories.enabled=true) matched (OnPropertyCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: javax.sql.DataSource; SearchStrategy: all) found bean 'dataSource'; @ConditionalOnMissingBean (types: org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean,org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JtaAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'jakarta.transaction.Transaction' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnProperty (spring.jta.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#classLoaderMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmCompilationMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmCompilationMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmGcMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmGcMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmHeapPressureMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmHeapPressureMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmInfoMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmInfoMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmMemoryMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    JvmMetricsAutoConfiguration#jvmThreadMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    LifecycleAutoConfiguration#defaultLifecycleProcessor matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (names: lifecycleProcessor; SearchStrategy: current) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    LogbackMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'io.micrometer.core.instrument.MeterRegistry', 'ch.qos.logback.classic.LoggerContext', 'org.slf4j.LoggerFactory' (OnClassCondition)
+rlvb-backend  |       - LogbackLoggingCondition ILoggerFactory is a Logback LoggerContext (LogbackMetricsAutoConfiguration.LogbackLoggingCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    LogbackMetricsAutoConfiguration#logbackMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.logging.LogbackMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ManagementContextAutoConfiguration.SameManagementContextConfiguration matched:
+rlvb-backend  |       - Management Port actual port type (SAME) matched required type (OnManagementPortCondition)
+rlvb-backend  | 
+rlvb-backend  |    MetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.annotation.Timed' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MetricsAutoConfiguration#micrometerClock matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.Clock; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    MultipartAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.multipart.support.StandardServletMultipartResolver', 'jakarta.servlet.MultipartConfigElement' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnProperty (spring.servlet.multipart.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    MultipartAutoConfiguration#multipartConfigElement matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: jakarta.servlet.MultipartConfigElement; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    MultipartAutoConfiguration#multipartResolver matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.multipart.MultipartResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    NamedParameterJdbcTemplateConfiguration matched:
+rlvb-backend  |       - @ConditionalOnSingleCandidate (types: org.springframework.jdbc.core.JdbcTemplate; SearchStrategy: all) found a single bean 'jdbcTemplate'; @ConditionalOnMissingBean (types: org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    NoOpCacheConfiguration matched:
+rlvb-backend  |       - Cache org.springframework.boot.autoconfigure.cache.NoOpCacheConfiguration automatic cache type (CacheCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.observation.ObservationRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration#observationRegistry matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.observation.ObservationRegistry; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.MeterObservationHandlerConfiguration matched:
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry'; @ConditionalOnMissingBean (types: io.micrometer.core.instrument.observation.MeterObservationHandler; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.MeterObservationHandlerConfiguration.OnlyMetricsMeterObservationHandlerConfiguration matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.tracing.Tracer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.ObservedAspectConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.aspectj.weaver.Advice' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.ObservedAspectConfiguration#observedAspect matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.observation.aop.ObservedAspect; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.OnlyMetricsConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry'; @ConditionalOnMissingClass did not find unwanted class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    PersistenceExceptionTranslationAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    PersistenceExceptionTranslationAutoConfiguration#persistenceExceptionTranslationPostProcessor matched:
+rlvb-backend  |       - @ConditionalOnProperty (spring.dao.exceptiontranslation.enabled) matched (OnPropertyCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    PropertyPlaceholderAutoConfiguration#propertySourcesPlaceholderConfigurer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.context.support.PropertySourcesPlaceholderConfigurer; SearchStrategy: current) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RepositoryMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.data.repository.Repository' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RepositoryMetricsAutoConfiguration#metricsRepositoryMethodInvocationListener matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.metrics.data.MetricsRepositoryMethodInvocationListener; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RepositoryMetricsAutoConfiguration#repositoryTagsProvider matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.metrics.data.RepositoryTagsProvider; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.client.RestClient' (OnClassCondition)
+rlvb-backend  |       - NoneNestedConditions 0 matched 1 did not; NestedCondition on NotReactiveWebApplicationCondition.ReactiveWebApplication did not find reactive web application classes (NotReactiveWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientAutoConfiguration#httpMessageConvertersRestClientCustomizer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.web.client.HttpMessageConvertersRestClientCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientAutoConfiguration#restClientBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.client.RestClient$Builder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientAutoConfiguration#restClientBuilderConfigurer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.web.client.RestClientBuilderConfigurer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientAutoConfiguration#restClientSsl matched:
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.boot.ssl.SslBundles; SearchStrategy: all) found bean 'sslBundleRegistry'; @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.web.client.RestClientSsl; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestClientObservationConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.client.RestClient' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.web.client.RestClient$Builder; SearchStrategy: all) found bean 'restClientBuilder' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestTemplateAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.client.RestTemplate' (OnClassCondition)
+rlvb-backend  |       - NoneNestedConditions 0 matched 1 did not; NestedCondition on NotReactiveWebApplicationCondition.ReactiveWebApplication did not find reactive web application classes (NotReactiveWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestTemplateAutoConfiguration#restTemplateBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.web.client.RestTemplateBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    RestTemplateObservationConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.client.RestTemplate' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.boot.web.client.RestTemplateBuilder; SearchStrategy: all) found bean 'restTemplateBuilder' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ScheduledTasksObservabilityAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.observation.ObservationRegistry; SearchStrategy: all) found bean 'observationRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityFilterAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer', 'org.springframework.security.config.http.SessionCreationPolicy' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityRequestMatchersManagementContextConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.security.web.util.matcher.RequestMatcher' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityRequestMatchersManagementContextConfiguration.MvcRequestMatcherConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.boot.autoconfigure.web.servlet.DispatcherServletPath; SearchStrategy: all) found bean 'dispatcherServletRegistration' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityRequestMatchersManagementContextConfiguration.MvcRequestMatcherConfiguration#requestMatcherProvider matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.security.servlet.RequestMatcherProvider; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletEndpointManagementContextConfiguration matched:
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletEndpointManagementContextConfiguration.WebMvcServletEndpointManagementContextConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletManagementContextAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'jakarta.servlet.Servlet' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'jakarta.servlet.ServletRequest' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryAutoConfiguration#tomcatServletWebServerFactoryCustomizer matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.apache.catalina.startup.Tomcat' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryConfiguration.EmbeddedTomcat matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.apache.catalina.startup.Tomcat', 'org.apache.coyote.UpgradeProtocol' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.web.servlet.server.ServletWebServerFactory; SearchStrategy: current) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SimpleCacheConfiguration matched:
+rlvb-backend  |       - Cache org.springframework.boot.autoconfigure.cache.SimpleCacheConfiguration automatic cache type (CacheCondition)
+rlvb-backend  | 
+rlvb-backend  |    SimpleMetricsExportAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnEnabledMetricsExport management.defaults.metrics.export.enabled is considered true (OnMetricsExportEnabledCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.Clock; SearchStrategy: all) found bean 'micrometerClock'; @ConditionalOnMissingBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SimpleMetricsExportAutoConfiguration#simpleConfig matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.simple.SimpleConfig; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SpringDataWebAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'org.springframework.data.web.PageableHandlerMethodArgumentResolver', 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.data.web.PageableHandlerMethodArgumentResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SpringDataWebAutoConfiguration#pageableCustomizer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SpringDataWebAutoConfiguration#sortCustomizer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.data.web.config.SortHandlerMethodArgumentResolverCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SqlInitializationAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnProperty (spring.sql.init.enabled) matched (OnPropertyCondition)
+rlvb-backend  |       - NoneNestedConditions 0 matched 1 did not; NestedCondition on SqlInitializationAutoConfiguration.SqlInitializationModeCondition.ModeIsNever @ConditionalOnProperty (spring.sql.init.mode=never) found different value in property 'mode' (SqlInitializationAutoConfiguration.SqlInitializationModeCondition)
+rlvb-backend  | 
+rlvb-backend  |    SslAutoConfiguration#sslBundleRegistry matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.ssl.SslBundleRegistry,org.springframework.boot.ssl.SslBundles; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    StartupTimeMetricsListenerAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    StartupTimeMetricsListenerAutoConfiguration#startupTimeMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.metrics.startup.StartupTimeMetricsListener; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SystemMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SystemMetricsAutoConfiguration#diskSpaceMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.metrics.system.DiskSpaceMetricsBinder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SystemMetricsAutoConfiguration#fileDescriptorMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.system.FileDescriptorMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SystemMetricsAutoConfiguration#processorMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.system.ProcessorMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SystemMetricsAutoConfiguration#uptimeMetrics matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.system.UptimeMetrics; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutionAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorConfigurations.SimpleAsyncTaskExecutorBuilderConfiguration#simpleAsyncTaskExecutorBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  |       - @ConditionalOnThreading found PLATFORM (OnThreadingCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorConfigurations.TaskExecutorBuilderConfiguration#taskExecutorBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.TaskExecutorBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorConfigurations.ThreadPoolTaskExecutorBuilderConfiguration#threadPoolTaskExecutorBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.TaskExecutorBuilder,org.springframework.boot.task.ThreadPoolTaskExecutorBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: java.util.concurrent.Executor,io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found beans 'simpleMeterRegistry', 'bankingTaskExecutor' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingConfigurations.SimpleAsyncTaskSchedulerBuilderConfiguration#simpleAsyncTaskSchedulerBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  |       - @ConditionalOnThreading found PLATFORM (OnThreadingCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingConfigurations.TaskSchedulerBuilderConfiguration#taskSchedulerBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.TaskSchedulerBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingConfigurations.ThreadPoolTaskSchedulerBuilderConfiguration#threadPoolTaskSchedulerBuilder matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.task.TaskSchedulerBuilder,org.springframework.boot.task.ThreadPoolTaskSchedulerBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TomcatMetricsAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'io.micrometer.core.instrument.binder.tomcat.TomcatMetrics', 'org.apache.catalina.Manager' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnWebApplication (required) found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    TomcatMetricsAutoConfiguration#tomcatMetricsBinder matched:
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry'; @ConditionalOnMissingBean (types: io.micrometer.core.instrument.binder.tomcat.TomcatMetrics,org.springframework.boot.actuate.metrics.web.tomcat.TomcatMetricsBinder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.transaction.PlatformTransactionManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.EnableTransactionManagementConfiguration matched:
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) found bean 'transactionManager'; @ConditionalOnMissingBean (types: org.springframework.transaction.annotation.AbstractTransactionManagementConfiguration; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.EnableTransactionManagementConfiguration.CglibAutoProxyConfiguration matched:
+rlvb-backend  |       - @ConditionalOnProperty (spring.aop.proxy-target-class=true) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.TransactionTemplateConfiguration matched:
+rlvb-backend  |       - @ConditionalOnSingleCandidate (types: org.springframework.transaction.PlatformTransactionManager; SearchStrategy: all) found a single bean 'transactionManager' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.TransactionTemplateConfiguration#transactionTemplate matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.transaction.support.TransactionOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionManagerCustomizationAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.transaction.PlatformTransactionManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionManagerCustomizationAutoConfiguration#platformTransactionManagerCustomizers matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnWebApplication (required) found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration#controllerEndpointDiscoverer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.annotation.ControllerEndpointsSupplier; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration#endpointMediaTypes matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.EndpointMediaTypes; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration#pathMappedEndpoints matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.PathMappedEndpoints; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration#webEndpointDiscoverer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.WebEndpointsSupplier; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration.WebEndpointServletConfiguration matched:
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebEndpointAutoConfiguration.WebEndpointServletConfiguration#servletEndpointDiscoverer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.annotation.ServletEndpointsSupplier; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.servlet.DispatcherServlet', 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration#formContentFilter matched:
+rlvb-backend  |       - @ConditionalOnProperty (spring.mvc.formcontent.filter.enabled) matched (OnPropertyCondition)
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.filter.FormContentFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.EnableWebMvcConfiguration#flashMapManager matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (names: flashMapManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.EnableWebMvcConfiguration#localeResolver matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (names: localeResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.EnableWebMvcConfiguration#themeResolver matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (names: themeResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#defaultViewResolver matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.servlet.view.InternalResourceViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#requestContextFilter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.context.request.RequestContextListener,org.springframework.web.filter.RequestContextFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#viewResolver matched:
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.web.servlet.ViewResolver; SearchStrategy: all) found beans 'defaultViewResolver', 'beanNameViewResolver', 'mvcViewResolver'; @ConditionalOnMissingBean (names: viewResolver types: org.springframework.web.servlet.view.ContentNegotiatingViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcEndpointManagementContextConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.web.servlet.DispatcherServlet,org.springframework.boot.actuate.endpoint.web.WebEndpointsSupplier; SearchStrategy: all) found beans 'webEndpointDiscoverer', 'dispatcherServlet' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcEndpointManagementContextConfiguration#controllerEndpointHandlerMapping matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.servlet.ControllerEndpointHandlerMapping; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcEndpointManagementContextConfiguration#endpointObjectMapperWebMvcConfigurer matched:
+rlvb-backend  |       - @ConditionalOnBean (types: org.springframework.boot.actuate.endpoint.jackson.EndpointObjectMapper; SearchStrategy: all) found bean 'endpointObjectMapper' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcEndpointManagementContextConfiguration#webEndpointServletHandlerMapping matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcObservationAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'org.springframework.web.servlet.DispatcherServlet', 'io.micrometer.observation.Observation' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.observation.ObservationRegistry; SearchStrategy: all) found bean 'observationRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcObservationAutoConfiguration#webMvcObservationFilter matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (types: org.springframework.web.filter.ServerHttpObservationFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcObservationAutoConfiguration.MeterFilterConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+rlvb-backend  |       - @ConditionalOnBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found bean 'simpleMeterRegistry' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketServletAutoConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'jakarta.websocket.server.ServerContainer' (OnClassCondition)
+rlvb-backend  |       - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketServletAutoConfiguration.TomcatWebSocketConfiguration matched:
+rlvb-backend  |       - @ConditionalOnClass found required classes 'org.apache.catalina.startup.Tomcat', 'org.apache.tomcat.websocket.server.WsSci' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketServletAutoConfiguration.TomcatWebSocketConfiguration#websocketServletWebServerCustomizer matched:
+rlvb-backend  |       - @ConditionalOnMissingBean (names: websocketServletWebServerCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  | 
+rlvb-backend  | Negative matches:
+rlvb-backend  | -----------------
+rlvb-backend  | 
+rlvb-backend  |    ActiveMQAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.jms.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    AopAutoConfiguration.AspectJAutoProxyingConfiguration.JdkDynamicAutoProxyConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.aop.proxy-target-class=false) did not find property 'proxy-target-class' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    AopAutoConfiguration.ClassProxyingConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingClass found unwanted class 'org.aspectj.weaver.Advice' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    AppOpticsMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.appoptics.AppOpticsMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ArtemisAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.jms.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    AtlasMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.atlas.AtlasMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    AuditAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.boot.actuate.audit.AuditEventRepository; SearchStrategy: all) did not find any beans of type org.springframework.boot.actuate.audit.AuditEventRepository (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnProperty (management.auditevents.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    AuditEventsEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    AvailabilityHealthContributorAutoConfiguration#livenessStateHealthIndicator:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (management.health.livenessstate.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    AvailabilityHealthContributorAutoConfiguration#readinessStateHealthIndicator:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (management.health.readinessstate.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    AvailabilityProbesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - Probes availability not running on a supported cloud platform (AvailabilityProbesAutoConfiguration.ProbesCondition)
+rlvb-backend  | 
+rlvb-backend  |    BatchAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.batch.core.launch.JobLauncher' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    BatchObservationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.batch.core.configuration.annotation.BatchObservabilityBeanPostProcessor' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    BeansEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    BraveAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'brave.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Cache2kCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.cache2k.Cache2kBuilder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.cache.interceptor.CacheAspectSupport; SearchStrategy: all) did not find any beans of type org.springframework.cache.interceptor.CacheAspectSupport (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.cache.CacheManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheAutoConfiguration.CacheManagerEntityManagerFactoryDependsOnPostProcessor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - Ancestor org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration did not match (ConditionEvaluationReport.AncestorsMatchedCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMeterBinderProvidersConfiguration.Cache2kCacheMeterBinderProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'org.cache2k.Cache2kBuilder', 'org.cache2k.extra.spring.SpringCache2kCache', 'org.cache2k.extra.micrometer.Cache2kCacheMetrics' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMeterBinderProvidersConfiguration.CaffeineCacheMeterBinderProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'org.springframework.cache.caffeine.CaffeineCache', 'com.github.benmanes.caffeine.cache.Cache' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMeterBinderProvidersConfiguration.HazelcastCacheMeterBinderProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'com.hazelcast.spring.cache.HazelcastCache', 'com.hazelcast.core.Hazelcast' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMeterBinderProvidersConfiguration.JCacheCacheMeterBinderProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'org.springframework.cache.jcache.JCacheCache', 'javax.cache.CacheManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMeterBinderProvidersConfiguration.RedisCacheMeterBinderProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.redis.cache.RedisCache' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CacheMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.cache.CacheManager; SearchStrategy: all) did not find any beans of type org.springframework.cache.CacheManager (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    CachesEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.cache.CacheManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CaffeineCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.github.benmanes.caffeine.cache.Caffeine' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraReactiveDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraReactiveHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraReactiveRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.cassandra.ReactiveSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CassandraRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.datastax.oss.driver.api.core.CqlSession' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ClientHttpConnectorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CloudFoundryActuatorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnCloudPlatform did not find CLOUD_FOUNDRY (OnCloudPlatformCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+rlvb-backend  |          - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |          - @ConditionalOnProperty (management.cloudfoundry.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    CodecsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CompositeMeterRegistryConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - NoneNestedConditions 1 matched 1 did not; NestedCondition on CompositeMeterRegistryConfiguration.MultipleNonPrimaryMeterRegistriesCondition.SingleInjectableMeterRegistry @ConditionalOnSingleCandidate (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found a single bean 'simpleMeterRegistry'; NestedCondition on CompositeMeterRegistryConfiguration.MultipleNonPrimaryMeterRegistriesCondition.NoMeterRegistryCondition @ConditionalOnMissingBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found beans of type 'io.micrometer.core.instrument.MeterRegistry' simpleMeterRegistry (CompositeMeterRegistryConfiguration.MultipleNonPrimaryMeterRegistriesCondition)
+rlvb-backend  | 
+rlvb-backend  |    ConditionsReportEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    ConfigurationPropertiesReportEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    ConnectionFactoryHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.r2dbc.spi.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ConnectionPoolMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.r2dbc.pool.ConnectionPool' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Bucket' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseReactiveDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseReactiveHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseReactiveRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Cluster' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    CouchbaseRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.couchbase.client.java.Bucket' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceAutoConfiguration.EmbeddedDatabaseConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - EmbeddedDataSource spring.datasource.url is set (DataSourceAutoConfiguration.EmbeddedDatabaseCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceCheckpointRestoreConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.crac.Resource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceConfiguration.Dbcp2:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.commons.dbcp2.BasicDataSource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceConfiguration.Generic:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.datasource.type) did not find property 'spring.datasource.type' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceConfiguration.OracleUcp:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'oracle.ucp.jdbc.PoolDataSourceImpl', 'oracle.jdbc.OracleConnection' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceConfiguration.Tomcat:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.tomcat.jdbc.pool.DataSource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceJmxConfiguration.TomcatDataSourceJmxConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.tomcat.jdbc.pool.DataSourceProxy' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourcePoolMetadataProvidersConfiguration.CommonsDbcp2PoolDataSourceMetadataProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.commons.dbcp2.BasicDataSource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourcePoolMetadataProvidersConfiguration.OracleUcpPoolDataSourceMetadataProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'oracle.ucp.jdbc.PoolDataSource', 'oracle.jdbc.OracleConnection' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourcePoolMetadataProvidersConfiguration.TomcatDataSourcePoolMetadataProviderConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.tomcat.jdbc.pool.DataSource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DataSourceTransactionManagerAutoConfiguration.JdbcTransactionManagerConfiguration#transactionManager:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) found beans of type 'org.springframework.transaction.TransactionManager' transactionManager (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    DatadogMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.datadog.DatadogMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    DispatcherServletAutoConfiguration.DispatcherServletConfiguration#multipartResolver:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.web.multipart.MultipartResolver; SearchStrategy: all) did not find any beans of type org.springframework.web.multipart.MultipartResolver (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    DynatraceMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.dynatrace.DynatraceMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.elastic.ElasticMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'co.elastic.clients.elasticsearch.ElasticsearchClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchReactiveHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.elasticsearch.repository.ElasticsearchRepository' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchRestClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.elasticsearch.client.RestClientBuilder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ElasticsearchRestHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.elasticsearch.client.RestClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    EmbeddedLdapAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.unboundid.ldap.listener.InMemoryDirectoryServer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    EmbeddedWebServerFactoryCustomizerAutoConfiguration.JettyWebServerFactoryCustomizerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'org.eclipse.jetty.server.Server', 'org.eclipse.jetty.util.Loader', 'org.eclipse.jetty.ee10.webapp.WebAppContext' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    EmbeddedWebServerFactoryCustomizerAutoConfiguration.NettyWebServerFactoryCustomizerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.netty.http.server.HttpServer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    EmbeddedWebServerFactoryCustomizerAutoConfiguration.TomcatWebServerFactoryCustomizerConfiguration#tomcatVirtualThreadsProtocolHandlerCustomizer:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnThreading did not find VIRTUAL (OnThreadingCondition)
+rlvb-backend  | 
+rlvb-backend  |    EmbeddedWebServerFactoryCustomizerAutoConfiguration.UndertowWebServerFactoryCustomizerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'io.undertow.Undertow', 'org.xnio.SslClientAuthMode' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    EnvironmentEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    ErrorWebFluxAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    FlywayAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.flywaydb.core.Flyway' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    FlywayEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.flywaydb.core.Flyway' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    FreeMarkerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'freemarker.template.Configuration' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GangliaMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.ganglia.GangliaMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlObservationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlQueryByExampleAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlQuerydslAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.querydsl.core.Query' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlRSocketAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlReactiveQueryByExampleAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlReactiveQuerydslAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.querydsl.core.Query' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlWebFluxAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlWebFluxSecurityAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlWebMvcAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphQlWebMvcSecurityAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GraphiteMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.graphite.GraphiteMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GroovyTemplateAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'groovy.text.markup.MarkupTemplateEngine' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GsonAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.google.gson.Gson' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    GsonHttpMessageConvertersConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.google.gson.Gson' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    H2ConsoleAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.h2.server.web.JakartaWebServlet' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HazelcastAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.hazelcast.core.HazelcastInstance' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HazelcastCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.hazelcast.core.HazelcastInstance' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HazelcastHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.hazelcast.core.HazelcastInstance' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HazelcastJpaDependencyAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.hazelcast.core.HazelcastInstance' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointReactiveWebExtensionConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    HealthEndpointWebExtensionConfiguration.JerseyAdditionalHealthEndpointPathsConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.ResourceConfig' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HeapDumpWebEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    HibernateMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.hibernate.stat.HibernateMetrics' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpExchangesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.boot.actuate.web.exchanges.HttpExchangeRepository; SearchStrategy: all) did not find any beans of type org.springframework.boot.actuate.web.exchanges.HttpExchangeRepository (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnWebApplication (required) found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  |          - @ConditionalOnProperty (management.httpexchanges.recording.enabled) matched (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpExchangesAutoConfiguration.ReactiveHttpExchangesConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  |          - Ancestor org.springframework.boot.actuate.autoconfigure.web.exchanges.HttpExchangesAutoConfiguration did not match (ConditionEvaluationReport.AncestorsMatchedCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpExchangesAutoConfiguration.ServletHttpExchangesConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - Ancestor org.springframework.boot.actuate.autoconfigure.web.exchanges.HttpExchangesAutoConfiguration did not match (ConditionEvaluationReport.AncestorsMatchedCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpExchangesEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    HttpHandlerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.DispatcherHandler' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HumioMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.humio.HumioMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    HypermediaAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.hateoas.EntityModel' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfinispanCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.infinispan.spring.embedded.provider.SpringEmbeddedCacheManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfluxDbAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.influxdb.InfluxDB' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfluxDbHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.influxdb.InfluxDB' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfluxMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.influx.InfluxMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoContributorAutoConfiguration#buildInfoContributor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnSingleCandidate (types: org.springframework.boot.info.BuildProperties; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnEnabledInfoContributor management.info.defaults.enabled is considered true (OnEnabledInfoContributorCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoContributorAutoConfiguration#envInfoContributor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnEnabledInfoContributor management.info.env.enabled is not true (OnEnabledInfoContributorCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoContributorAutoConfiguration#gitInfoContributor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnSingleCandidate (types: org.springframework.boot.info.GitProperties; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnEnabledInfoContributor management.info.defaults.enabled is considered true (OnEnabledInfoContributorCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoContributorAutoConfiguration#javaInfoContributor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnEnabledInfoContributor management.info.java.enabled is not true (OnEnabledInfoContributorCondition)
+rlvb-backend  | 
+rlvb-backend  |    InfoContributorAutoConfiguration#osInfoContributor:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnEnabledInfoContributor management.info.os.enabled is not true (OnEnabledInfoContributorCondition)
+rlvb-backend  | 
+rlvb-backend  |    IntegrationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.integration.config.EnableIntegration' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    IntegrationGraphEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.integration.graph.IntegrationGraphServer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JCacheCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'javax.cache.Caching' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JacksonHttpMessageConvertersConfiguration.MappingJackson2XmlHttpMessageConverterConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.fasterxml.jackson.dataformat.xml.XmlMapper' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JdbcRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JerseyAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.spring.SpringComponentProvider' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JerseySameManagementContextConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.ResourceConfig' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JerseyServerMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.core.instrument.binder.jersey.server.MetricsApplicationEventListener' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JerseyWebEndpointManagementContextConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.ResourceConfig' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JettyMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.eclipse.jetty.server.Server' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JmsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.jms.Message' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JmsHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.jms.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JmxAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.jmx.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.jmx.export.MBeanExporter' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JmxEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.jmx.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    JmxMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.jmx.JmxMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JndiConnectionFactoryAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.jms.core.JmsTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JndiDataSourceAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.datasource.jndi-name) did not find property 'jndi-name' (OnPropertyCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JndiJtaConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnJndi JNDI environment is not available (OnJndiCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.transaction.jta.JtaTransactionManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JooqAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.jooq.DSLContext' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaBaseConfiguration.JpaWebConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.jpa.open-in-view=true) found different value in property 'open-in-view' (OnPropertyCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+rlvb-backend  |          - found 'session' scope (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    JpaRepositoriesAutoConfiguration#entityManagerFactoryBootstrapExecutorCustomizer:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - AnyNestedCondition 0 matched 2 did not; NestedCondition on JpaRepositoriesAutoConfiguration.BootstrapExecutorCondition.LazyBootstrapMode @ConditionalOnProperty (spring.data.jpa.repositories.bootstrap-mode=lazy) did not find property 'bootstrap-mode'; NestedCondition on JpaRepositoriesAutoConfiguration.BootstrapExecutorCondition.DeferredBootstrapMode @ConditionalOnProperty (spring.data.jpa.repositories.bootstrap-mode=deferred) did not find property 'bootstrap-mode' (JpaRepositoriesAutoConfiguration.BootstrapExecutorCondition)
+rlvb-backend  | 
+rlvb-backend  |    JsonbAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.json.bind.Jsonb' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    JsonbHttpMessageConvertersConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.json.bind.Jsonb' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    KafkaAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.kafka.core.KafkaTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    KafkaMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.kafka.core.ProducerFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    KairosMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.kairos.KairosMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LdapAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.ldap.core.ContextSource' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LdapHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.ldap.core.LdapOperations' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LdapRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.ldap.repository.LdapRepository' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LettuceMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.lettuce.core.metrics.MicrometerCommandLatencyRecorder' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LiquibaseAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'liquibase.change.DatabaseChange' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LiquibaseEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'liquibase.integration.spring.SpringLiquibase' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Log4J2MetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.logging.log4j.core.LoggerContext' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    LogFileWebEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    LoggersEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    MailHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.mail.javamail.JavaMailSenderImpl' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MailSenderAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'jakarta.mail.internet.MimeMessage' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MailSenderValidatorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnSingleCandidate did not find required type 'org.springframework.mail.javamail.JavaMailSenderImpl' (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ManagementContextAutoConfiguration.DifferentManagementContextConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - Management Port actual port type (SAME) did not match required type (DIFFERENT) (OnManagementPortCondition)
+rlvb-backend  | 
+rlvb-backend  |    MappingsEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    MessageSourceAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - ResourceBundle did not find bundle with basename messages (MessageSourceAutoConfiguration.ResourceBundleCondition)
+rlvb-backend  | 
+rlvb-backend  |    MetricsAspectsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - AnyNestedCondition 0 matched 2 did not; NestedCondition on MetricsAspectsAutoConfiguration.ObservationAnnotationsEnabledCondition.ManagementObservationsEnabledCondition @ConditionalOnProperty (management.observations.annotations.enabled=true) did not find property 'enabled'; NestedCondition on MetricsAspectsAutoConfiguration.ObservationAnnotationsEnabledCondition.MicrometerObservationsEnabledCondition @ConditionalOnProperty (micrometer.observations.annotations.enabled=true) did not find property 'enabled' (MetricsAspectsAutoConfiguration.ObservationAnnotationsEnabledCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required classes 'io.micrometer.core.instrument.MeterRegistry', 'org.aspectj.weaver.Advice' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MetricsEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'io.micrometer.core.annotation.Timed' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MicrometerTracingAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.mongodb.core.MongoTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.MongoClientSettings' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoReactiveAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.reactivestreams.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoReactiveDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.reactivestreams.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoReactiveHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoReactiveRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.reactivestreams.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MongoRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.mongodb.client.MongoClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    MustacheAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.samskivert.mustache.Mustache' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jReactiveDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jReactiveRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Neo4jRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.neo4j.driver.Driver' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    NettyAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.netty.util.NettyRuntime' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    NewRelicMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.newrelic.NewRelicMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    NoOpMeterRegistryConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: io.micrometer.core.instrument.MeterRegistry; SearchStrategy: all) found beans of type 'io.micrometer.core.instrument.MeterRegistry' simpleMeterRegistry (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    NoopTracerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OAuth2AuthorizationServerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.oauth2.server.authorization.OAuth2Authorization' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OAuth2AuthorizationServerJwtAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.oauth2.server.authorization.OAuth2Authorization' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OAuth2ClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.oauth2.client.registration.ClientRegistration' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OAuth2ResourceServerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.MeterObservationHandlerConfiguration.TracingAndMetricsObservationHandlerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean did not find required type 'io.micrometer.tracing.Tracer' (OnBeanCondition)
+rlvb-backend  |          - @ConditionalOnBean (types: io.micrometer.tracing.Tracer; SearchStrategy: all) did not find any beans of type io.micrometer.tracing.Tracer (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.MetricsWithTracingConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ObservationAutoConfiguration.OnlyTracingConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    org.springframework.boot.actuate.autoconfigure.opentelemetry.OpenTelemetryAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.opentelemetry.sdk.OpenTelemetrySdk' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.otel.bridge.OtelTracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OtlpAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.otel.bridge.OtelTracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    OtlpMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.registry.otlp.OtlpMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ProjectInfoAutoConfiguration#buildProperties:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnResource did not find resource '${spring.info.build.location:classpath:META-INF/build-info.properties}' (OnResourceCondition)
+rlvb-backend  | 
+rlvb-backend  |    ProjectInfoAutoConfiguration#gitProperties:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - GitResource did not find git info at classpath:git.properties (ProjectInfoAutoConfiguration.GitResourceAvailableCondition)
+rlvb-backend  | 
+rlvb-backend  |    PrometheusExemplarsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.tracing.Tracer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    PrometheusMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.prometheus.PrometheusMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    PulsarAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.pulsar.client.api.PulsarClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    PulsarReactiveAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.apache.pulsar.client.api.PulsarClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    QuartzAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.quartz.Scheduler' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    QuartzEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.quartz.Scheduler' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.r2dbc.spi.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcDataAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.r2dbc.core.R2dbcEntityTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcInitializationConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'io.r2dbc.spi.ConnectionFactory', 'org.springframework.r2dbc.connection.init.DatabasePopulator' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcObservationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.r2dbc.proxy.ProxyConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.r2dbc.spi.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    R2dbcTransactionManagerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.r2dbc.connection.R2dbcTransactionManager' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketGraphQlClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'graphql.GraphQL' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketMessagingAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.rsocket.RSocket' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketRequesterAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.rsocket.RSocket' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketSecurityAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.rsocket.core.SecuritySocketAcceptorInterceptor' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketServerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.rsocket.core.RSocketServer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RSocketStrategiesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.netty.buffer.PooledByteBufAllocator' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RabbitAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.rabbitmq.client.Channel' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RabbitHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.amqp.rabbit.core.RabbitTemplate' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RabbitMetricsAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.rabbitmq.client.ConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveCloudFoundryActuatorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveElasticsearchClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'co.elastic.clients.transport.ElasticsearchTransport' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveElasticsearchRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Mono' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveHealthEndpointConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveManagementContextAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveManagementWebSecurityAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveMultipartAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveOAuth2ClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveOAuth2ResourceServerAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveSecurityAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveUserDetailsServiceAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - AnyNestedCondition 0 matched 2 did not; NestedCondition on ReactiveUserDetailsServiceAutoConfiguration.RSocketEnabledOrReactiveWebApplication.ReactiveWebApplicationCondition did not find reactive web application classes; NestedCondition on ReactiveUserDetailsServiceAutoConfiguration.RSocketEnabledOrReactiveWebApplication.RSocketSecurityEnabledCondition @ConditionalOnBean (types: org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler; SearchStrategy: all) did not find any beans of type org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler (ReactiveUserDetailsServiceAutoConfiguration.RSocketEnabledOrReactiveWebApplication)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.security.authentication.ReactiveAuthenticationManager' (OnClassCondition)
+rlvb-backend  |          - AnyNestedCondition 1 matched 2 did not; NestedCondition on ReactiveUserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.PasswordConfigured @ConditionalOnProperty (spring.security.user.password) did not find property 'password'; NestedCondition on ReactiveUserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.NameConfigured @ConditionalOnProperty (spring.security.user.name) did not find property 'name'; NestedCondition on ReactiveUserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.MissingAlternative @ConditionalOnMissingClass did not find unwanted classes 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository', 'org.springframework.security.oauth2.server.resource.introspection.ReactiveOpaqueTokenIntrospector' (ReactiveUserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured)
+rlvb-backend  | 
+rlvb-backend  |    ReactiveWebServerFactoryAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    ReactorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Hooks' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.redis.core.RedisOperations' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisCacheConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.redis.connection.RedisConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.redis.connection.RedisConnectionFactory' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisReactiveAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisReactiveHealthContributorAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Flux' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RedisRepositoriesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.redis.repository.configuration.EnableRedisRepositories' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    RepositoryRestMvcAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    Saml2RelyingPartyAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ScheduledTasksEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityFilterAutoConfiguration#securityFilterChainRegistration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (names: springSecurityFilterChain; SearchStrategy: all) did not find any beans named springSecurityFilterChain (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    SecurityRequestMatchersManagementContextConfiguration.JerseyRequestMatcherConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.ResourceConfig' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    SendGridAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.sendgrid.SendGrid' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletEndpointManagementContextConfiguration.JerseyServletEndpointManagementContextConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.glassfish.jersey.server.ResourceConfig' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletManagementContextAutoConfiguration.ApplicationContextFilterConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (management.server.add-application-context-header=true) did not find property 'add-application-context-header' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryAutoConfiguration.ForwardedHeaderFilterConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (server.forward-headers-strategy=framework) did not find property 'server.forward-headers-strategy' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryConfiguration.EmbeddedJetty:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'org.eclipse.jetty.server.Server', 'org.eclipse.jetty.util.Loader', 'org.eclipse.jetty.ee10.webapp.WebAppContext' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ServletWebServerFactoryConfiguration.EmbeddedUndertow:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required classes 'io.undertow.Undertow', 'org.xnio.SslClientAuthMode' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    SessionAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.session.Session' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    SessionsEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.session.FindByIndexNameSessionRepository' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ShutdownEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no property management.endpoint.shutdown.enabled found so using endpoint default of false (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    SignalFxMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.signalfx.SignalFxMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    SpringApplicationAdminJmxAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.application.admin.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    StackdriverMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.stackdriver.StackdriverMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    StartupEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - ApplicationStartup configured applicationStartup is of type class org.springframework.core.metrics.DefaultApplicationStartup, expected BufferingApplicationStartup. (StartupEndpointAutoConfiguration.ApplicationStartupCondition)
+rlvb-backend  | 
+rlvb-backend  |    StatsdMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.micrometer.statsd.StatsdMeterRegistry' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorConfigurations.SimpleAsyncTaskExecutorBuilderConfiguration#simpleAsyncTaskExecutorBuilderVirtualThreads:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder' simpleAsyncTaskExecutorBuilder (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskExecutorConfigurations.TaskExecutorConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: java.util.concurrent.Executor; SearchStrategy: all) found beans of type 'java.util.concurrent.Executor' bankingTaskExecutor (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingAutoConfiguration#scheduledBeanLazyInitializationExcludeFilter:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (names: org.springframework.context.annotation.internalScheduledAnnotationProcessor; SearchStrategy: all) did not find any beans named org.springframework.context.annotation.internalScheduledAnnotationProcessor (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingConfigurations.SimpleAsyncTaskSchedulerBuilderConfiguration#simpleAsyncTaskSchedulerBuilderVirtualThreads:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder' simpleAsyncTaskSchedulerBuilder (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TaskSchedulingConfigurations.TaskSchedulerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (names: org.springframework.context.annotation.internalScheduledAnnotationProcessor; SearchStrategy: all) did not find any beans named org.springframework.context.annotation.internalScheduledAnnotationProcessor (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    ThreadDumpEndpointAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnAvailableEndpoint no 'management.endpoints' property marked it as exposed (OnAvailableEndpointCondition)
+rlvb-backend  | 
+rlvb-backend  |    ThymeleafAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.thymeleaf.spring6.SpringTemplateEngine' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration#transactionalOperator:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnSingleCandidate (types: org.springframework.transaction.ReactiveTransactionManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.AspectJTransactionManagementConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.transaction.aspectj.AbstractTransactionAspect; SearchStrategy: all) did not find any beans of type org.springframework.transaction.aspectj.AbstractTransactionAspect (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    TransactionAutoConfiguration.EnableTransactionManagementConfiguration.JdkDynamicAutoProxyConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.aop.proxy-target-class=false) did not find property 'proxy-target-class' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    UserDetailsServiceAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.security.config.annotation.ObjectPostProcessor; SearchStrategy: all) did not find any beans of type org.springframework.security.config.annotation.ObjectPostProcessor (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'org.springframework.security.authentication.AuthenticationManager' (OnClassCondition)
+rlvb-backend  |          - AnyNestedCondition 1 matched 2 did not; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.PasswordConfigured @ConditionalOnProperty (spring.security.user.password) did not find property 'password'; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.NameConfigured @ConditionalOnProperty (spring.security.user.name) did not find property 'name'; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.MissingAlternative @ConditionalOnMissingClass did not find unwanted classes 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository', 'org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector', 'org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository' (UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured)
+rlvb-backend  | 
+rlvb-backend  |    ValidationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnResource did not find resource 'classpath:META-INF/services/jakarta.validation.spi.ValidationProvider' (OnResourceCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required class 'jakarta.validation.executable.ExecutableValidator' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WavefrontAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.application.ApplicationTags' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WavefrontMetricsExportAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.WavefrontSender' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WavefrontTracingAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'com.wavefront.sdk.common.WavefrontSender' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebClientAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebClientObservationConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebFluxAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebFluxEndpointManagementContextConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.reactive.DispatcherHandler' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebFluxObservationAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration#hiddenHttpMethodFilter:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.mvc.hiddenmethod.filter.enabled) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.ProblemDetailsErrorHandlingConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnProperty (spring.mvc.problemdetails.enabled=true) did not find property 'enabled' (OnPropertyCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.ResourceChainCustomizerConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnEnabledResourceChain did not find class org.webjars.WebJarAssetLocator (OnEnabledResourceChainCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#beanNameViewResolver:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnMissingBean (types: org.springframework.web.servlet.view.BeanNameViewResolver; SearchStrategy: all) found beans of type 'org.springframework.web.servlet.view.BeanNameViewResolver' beanNameViewResolver (OnBeanCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebMvcEndpointManagementContextConfiguration#managementHealthEndpointWebMvcHandlerMapping:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - Management Port actual port type (SAME) did not match required type (DIFFERENT) (OnManagementPortCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebServiceTemplateAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.oxm.Marshaller' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebServicesAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.ws.transport.http.MessageDispatcherServlet' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSessionIdResolverAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'reactor.core.publisher.Mono' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketMessagingAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketReactiveAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnWebApplication did not find reactive web application classes (OnWebApplicationCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketServletAutoConfiguration.JettyWebSocketConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    WebSocketServletAutoConfiguration.UndertowWebSocketConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'io.undertow.websockets.jsr.Bootstrap' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    XADataSourceAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnBean (types: org.springframework.boot.jdbc.XADataSourceWrapper; SearchStrategy: all) did not find any beans of type org.springframework.boot.jdbc.XADataSourceWrapper (OnBeanCondition)
+rlvb-backend  |       Matched:
+rlvb-backend  |          - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'jakarta.transaction.TransactionManager', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  |    ZipkinAutoConfiguration:
+rlvb-backend  |       Did not match:
+rlvb-backend  |          - @ConditionalOnClass did not find required class 'zipkin2.reporter.Sender' (OnClassCondition)
+rlvb-backend  | 
+rlvb-backend  | 
+rlvb-backend  | Exclusions:
+rlvb-backend  | -----------
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  | 
+rlvb-backend  | Unconditional classes:
+rlvb-backend  | ----------------------
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.availability.AvailabilityHealthContributorAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.info.InfoContributorAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.metrics.integration.IntegrationMetricsAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.health.HealthContributorAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.actuate.autoconfigure.endpoint.jackson.JacksonEndpointAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  |     org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration
+rlvb-backend  | 
+rlvb-backend  | 
+rlvb-backend  | 
+rlvb-backend  | 2026-03-07T11:00:58.394Z ERROR 7 --- [banking-ocr] [           main] o.s.boot.SpringApplication               : Application run failed
+rlvb-backend  | 
+rlvb-backend  | org.springframework.context.ApplicationContextException: Unable to start web server
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:165) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:619) ~[spring-context-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1363) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1352) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at com.example.releve_bancaire.ReleveBancaireApplication.main(ReleveBancaireApplication.java:21) ~[!/:0.0.1-SNAPSHOT]
+rlvb-backend  | 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+rlvb-backend  | 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+rlvb-backend  | 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source) ~[na:na]
+rlvb-backend  | 	at java.base/java.lang.reflect.Method.invoke(Unknown Source) ~[na:na]
+rlvb-backend  | 	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[app.jar:0.0.1-SNAPSHOT]
+rlvb-backend  | 	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[app.jar:0.0.1-SNAPSHOT]
+rlvb-backend  | 	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[app.jar:0.0.1-SNAPSHOT]
+rlvb-backend  | Caused by: org.springframework.boot.web.server.WebServerException: Unable to start embedded Tomcat
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:145) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.<init>(TomcatWebServer.java:105) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getTomcatWebServer(TomcatServletWebServerFactory.java:499) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer(TomcatServletWebServerFactory.java:218) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:188) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:162) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	... 15 common frames omitted
+rlvb-backend  | Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'jwtAuthenticationFilter' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/JwtAuthenticationFilter.class]: Unsatisfied dependency expressed through constructor parameter 1: Error creating bean with name 'appUserDetailsService' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/AppUserDetailsService.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'appUserRepository' defined in com.example.releve_bancaire.auth.repository.AppUserRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Cannot resolve reference to bean 'jpaSharedEM_entityManagerFactory' while setting bean property 'entityManager'
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.getOrderedBeansOfType(ServletContextInitializerBeans.java:210) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:173) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:168) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAdaptableBeans(ServletContextInitializerBeans.java:153) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.<init>(ServletContextInitializerBeans.java:86) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.getServletContextInitializerBeans(ServletWebServerApplicationContext.java:266) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.selfInitialize(ServletWebServerApplicationContext.java:240) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatStarter.onStartup(TomcatStarter.java:52) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4426) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1203) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1193) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at java.base/java.util.concurrent.FutureTask.run(Unknown Source) ~[na:na]
+rlvb-backend  | 	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at java.base/java.util.concurrent.AbstractExecutorService.submit(Unknown Source) ~[na:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:749) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.StandardHost.startInternal(StandardHost.java:772) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1203) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1193) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at java.base/java.util.concurrent.FutureTask.run(Unknown Source) ~[na:na]
+rlvb-backend  | 	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at java.base/java.util.concurrent.AbstractExecutorService.submit(Unknown Source) ~[na:na]
+rlvb-backend  | 	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:749) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.StandardEngine.startInternal(StandardEngine.java:203) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.StandardService.startInternal(StandardService.java:415) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:870) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.apache.catalina.startup.Tomcat.start(Tomcat.java:437) ~[tomcat-embed-core-10.1.33.jar!/:na]
+rlvb-backend  | 	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:126) ~[spring-boot-3.2.12.jar!/:3.2.12]
+rlvb-backend  | 	... 20 common frames omitted
+rlvb-backend  | Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'appUserDetailsService' defined in URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/AppUserDetailsService.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'appUserRepository' defined in com.example.releve_bancaire.auth.repository.AppUserRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Cannot resolve reference to bean 'jpaSharedEM_entityManagerFactory' while setting bean property 'entityManager'
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	... 61 common frames omitted
+rlvb-backend  | Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'appUserRepository' defined in com.example.releve_bancaire.auth.repository.AppUserRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Cannot resolve reference to bean 'jpaSharedEM_entityManagerFactory' while setting bean property 'entityManager'
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:377) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:135) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyPropertyValues(AbstractAutowireCapableBeanFactory.java:1705) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1454) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:599) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	... 75 common frames omitted
+rlvb-backend  | Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jpaSharedEM_entityManagerFactory': Cannot resolve reference to bean 'entityManagerFactory' while setting constructor argument
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:377) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveValueIfNecessary(BeanDefinitionValueResolver.java:135) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.resolveConstructorArguments(ConstructorResolver.java:682) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:509) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1355) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1185) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:365) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	... 89 common frames omitted
+rlvb-backend  | Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:365) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	... 101 common frames omitted
+rlvb-backend  | Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+rlvb-backend  | 	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:223) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:191) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:170) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1432) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1503) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.15.jar!/:6.1.15]
+rlvb-backend  | 	... 108 common frames omitted
+rlvb-backend  | Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+rlvb-backend  | 	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:143) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:348) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:107) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:68) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.4.10.Final.jar!/:6.4.10.Final]
+rlvb-backend  | 	... 123 common frames omitted
+rlvb-backend  | 
+rlvb-backend  | Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+rlvb-backend  | 
+rlvb-backend  |   .   ____          _            __ _ _
+rlvb-backend  |  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+rlvb-backend  | ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+rlvb-backend  |  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+rlvb-backend  |   '  |____| .__|_| |_|_| |_\__, | / / / /
+rlvb-backend  |  =========|_|==============|___/=/_/_/_/
+rlvb-backend  |  :: Spring Boot ::               (v3.2.12)
+rlvb-backend  | 
+rlvb-backend  | 2026-03-07T11:01:01.470Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_controller/BankTransactionController.class]
+rlvb-backend  | 2026-03-07T11:01:01.480Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_controller/BankStatementController.class]
+rlvb-backend  | 2026-03-07T11:01:01.481Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_controller/AccountingAccountController.class]
+rlvb-backend  | 2026-03-07T11:01:01.484Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Ignored because not a concrete top-level class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/repository/CentreMonetiqueTransactionRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.485Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Ignored because not a concrete top-level class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/repository/CentreMonetiqueBatchRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.490Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/service/CentreMonetiqueOcrService.class]
+rlvb-backend  | 2026-03-07T11:01:01.491Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/service/CentreMonetiqueWorkflowService.class]
+rlvb-backend  | 2026-03-07T11:01:01.493Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/service/CentreMonetiqueExtractionService.class]
+rlvb-backend  | 2026-03-07T11:01:01.496Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/controller/CentreMonetiqueController.class]
+rlvb-backend  | 2026-03-07T11:01:01.497Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/centremonetique/config/CentreMonetiqueSchemaMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.514Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_services/ComptabilisationWorkflowService.class]
+rlvb-backend  | 2026-03-07T11:01:01.516Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_services/WinsOsXmlParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.526Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_services/AccountingGenerationService.class]
+rlvb-backend  | 2026-03-07T11:01:01.532Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Ignored because not a concrete top-level class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/repository/AccountDao.class]
+rlvb-backend  | 2026-03-07T11:01:01.537Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_mapper/BankTransactionMapper.class]
+rlvb-backend  | 2026-03-07T11:01:01.540Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_mapper/BankStatementMapper.class]
+rlvb-backend  | 2026-03-07T11:01:01.545Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/controller/AuthController.class]
+rlvb-backend  | 2026-03-07T11:01:01.556Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/config/SuperAdminSeedConfig.class]
+rlvb-backend  | 2026-03-07T11:01:01.567Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/JwtAuthenticationFilter.class]
+rlvb-backend  | 2026-03-07T11:01:01.570Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/JwtService.class]
+rlvb-backend  | 2026-03-07T11:01:01.573Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/auth/security/AppUserDetailsService.class]
+rlvb-backend  | 2026-03-07T11:01:01.575Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/BankStatementSchemaMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.578Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/AccountingConfigDropMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.579Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/BankStatementFileBlobMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.580Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/SecurityConfig.class]
+rlvb-backend  | 2026-03-07T11:01:01.583Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/Banking_AsyncConfig.class]
+rlvb-backend  | 2026-03-07T11:01:01.584Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/AccountingEntryNumeroIndexMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.584Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/AccountSeedMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.585Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/CptjournalColumnMigration.class]
+rlvb-backend  | 2026-03-07T11:01:01.594Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/config/TesseractConfig.class]
+rlvb-backend  | 2026-03-07T11:01:01.598Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Ignored because not a concrete top-level class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_repository/BankTransactionRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.599Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Ignored because not a concrete top-level class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_repository/BankStatementRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.610Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_repository/CptjournalSyncTrackerRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.611Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_repository/CptjournalJdbcRepository.class]
+rlvb-backend  | 2026-03-07T11:01:01.613Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_controller/ComptabilisationWorkflowController.class]
+rlvb-backend  | 2026-03-07T11:01:01.614Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/accounting_controller/AccountingGenerationController.class]
+rlvb-backend  | 2026-03-07T11:01:01.618Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankStatementProcessingService.class]
+rlvb-backend  | 2026-03-07T11:01:01.620Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankFileStorageService.class]
+rlvb-backend  | 2026-03-07T11:01:01.626Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/TransactionParserFactory.class]
+rlvb-backend  | 2026-03-07T11:01:01.628Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankDetector.class]
+rlvb-backend  | 2026-03-07T11:01:01.630Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/HeaderFooterCleaner.class]
+rlvb-backend  | 2026-03-07T11:01:01.632Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/StatementTotalsExtractor.class]
+rlvb-backend  | 2026-03-07T11:01:01.633Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/PrimaryRibExtractor.class]
+rlvb-backend  | 2026-03-07T11:01:01.634Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/TransactionClassifier.class]
+rlvb-backend  | 2026-03-07T11:01:01.635Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_parser/StandardTransactionParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.637Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_parser/DateOpDateValTransactionParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.638Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_parser/LibelleDateValTransactionParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.639Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_parser/AttijariwafaTransactionParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.641Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_parser/BcpTransactionParser.class]
+rlvb-backend  | 2026-03-07T11:01:01.643Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/MetadataExtractorService.class]
+rlvb-backend  | 2026-03-07T11:01:01.645Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/AccountingBalanceDrivenResolver.class]
+rlvb-backend  | 2026-03-07T11:01:01.647Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/DefaultTransactionConfidenceScorer.class]
+rlvb-backend  | 2026-03-07T11:01:01.649Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/UniversalTransactionExtractionEngineImpl.class]
+rlvb-backend  | 2026-03-07T11:01:01.652Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/ScoredTransactionBlockBuilder.class]
+rlvb-backend  | 2026-03-07T11:01:01.653Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/DefaultBankLayoutProfileRegistry.class]
+rlvb-backend  | 2026-03-07T11:01:01.655Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/SmartNumericClassifier.class]
+rlvb-backend  | 2026-03-07T11:01:01.656Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/ExternalComptesCatalogService.class]
+rlvb-backend  | 2026-03-07T11:01:01.657Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankStatementProcessor.class]
+rlvb-backend  | 2026-03-07T11:01:01.659Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankTransactionAccountLearningService.class]
+rlvb-backend  | 2026-03-07T11:01:01.661Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/TransactionExtractorService.class]
+rlvb-backend  | 2026-03-07T11:01:01.663Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/BankStatementValidatorService.class]
+rlvb-backend  | 2026-03-07T11:01:01.667Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/StatementPeriodExtractor.class]
+rlvb-backend  | 2026-03-07T11:01:01.668Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_ocr/OcrService.class]
+rlvb-backend  | 2026-03-07T11:01:01.668Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_ocr/FooterExtractionService.class]
+rlvb-backend  | 2026-03-07T11:01:01.669Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_ocr/OcrPreProcessor.class]
+rlvb-backend  | 2026-03-07T11:01:01.669Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_ocr/OcrCleaningService.class]
+rlvb-backend  | 2026-03-07T11:01:01.670Z DEBUG 7 --- [banking-ocr] [           main] o.s.c.a.ClassPathBeanDefinitionScanner   : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_ocr/ImageZoneExtractor.class]
+rlvb-backend  | 2026-03-07T11:01:04.249Z DEBUG 7 --- [banking-ocr] [           main] o.s.b.a.AutoConfigurationPackages        : @EnableAutoConfiguration was declared on a class in the package 'com.example.releve_bancaire'. Automatic @Repository and @Entity scanning is enabled.
+rlvb-backend  | 2026-03-07T11:01:04.318Z DEBUG 7 --- [banking-ocr] [           main] ssPathScanningCandidateComponentProvider : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_services/banking_universal/UniversalTransactionExtractionEngineImpl.class]
+rlvb-backend  | 2026-03-07T11:01:04.318Z DEBUG 7 --- [banking-ocr] [           main] ssPathScanningCandidateComponentProvider : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_dto/BankTransactionDTO$BankTransactionDTOBuilderImpl.class]
+rlvb-backend  | 2026-03-07T11:01:04.318Z DEBUG 7 --- [banking-ocr] [           main] ssPathScanningCandidateComponentProvider : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_dto/BankStatementDTO$BankStatementDTOBuilderImpl.class]
+rlvb-backend  | 2026-03-07T11:01:04.318Z DEBUG 7 --- [banking-ocr] [           main] ssPathScanningCandidateComponentProvider : Identified candidate component class: URL [jar:nested:/app/app.jar/!BOOT-INF/classes/!/com/example/releve_bancaire/banking_dto/BankStatementDetailDTO$BankStatementDetailDTOBuilderImpl.class]
+rlvb-backend  | Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
