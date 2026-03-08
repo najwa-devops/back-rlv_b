@@ -258,6 +258,55 @@ docker exec rlvb-mariadb mariadb -unabil1 -pNabilkarim1 rlvb_db -e "SELECT Numer
 - Ajouter tests d'intégration:
   - insertion 2 lignes / même `Numero`
   - calcul `mnt_rester`
+
+## 9) Nouveau module Centre Monétique (OCR dédié)
+
+Un module séparé a été ajouté côté backend pour traiter les documents de règlement TPE Centre Monétique, sans modifier le pipeline des relevés bancaires.
+
+### Backend API
+
+- `POST /api/v2/centre-monetique/upload`
+  - `multipart/form-data`: `file` (obligatoire), `year` (optionnel)
+  - support: `pdf`, `png`, `jpg`, `jpeg`, `webp`, `bmp`, `tif`, `tiff`
+  - résultat: lignes JSON structurées + ligne `Total`
+- `GET /api/v2/centre-monetique?limit=50`
+  - historique des batches extraits
+- `GET /api/v2/centre-monetique/{id}`
+  - détail batch + lignes extraites
+- `POST /api/v2/centre-monetique/{id}/reprocess`
+  - retraitement à partir du fichier stocké en base
+- `GET /api/v2/centre-monetique/{id}/file`
+  - consultation du fichier source
+- `DELETE /api/v2/centre-monetique/{id}`
+  - suppression batch + lignes associées
+
+### Base de données
+
+Tables créées automatiquement par JPA:
+
+- `cm_batch` (fichier, OCR brut, statut, totaux, timestamps)
+- `cm_transaction` (lignes extraites `section/date/reference/montant/debit/credit`)
+
+Un composant de migration ajoute les index MariaDB/MySQL:
+
+- `idx_cm_batch_created_at`
+- `idx_cm_batch_status`
+- `idx_cm_tx_batch_id`
+- `idx_cm_tx_batch_row`
+
+### Frontend dédié (dans ce repo backend)
+
+Interface statique disponible à:
+
+- `/centre-monetique/index.html`
+- alias: `/centre-monetique.html`
+
+Fonctions:
+
+- upload fichier + extraction
+- affichage JSON
+- historique des traitements
+- ouvrir détail / reprocess / télécharger fichier / supprimer
   - sync `Cptjournal` anciens relevés
   - UI optimistic update (component tests)
 
@@ -275,4 +324,3 @@ docker exec rlvb-mariadb mariadb -unabil1 -pNabilkarim1 rlvb_db -e "SELECT Numer
 - Frontend: mise à jour instantanée du statut implémentée sur liste + modal.
 - DB: schéma et migrations alignés sur les noms de colonnes demandés.
 - Docker: stack de test opérationnelle.
-
