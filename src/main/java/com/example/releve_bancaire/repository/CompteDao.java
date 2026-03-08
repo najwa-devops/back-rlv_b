@@ -16,6 +16,8 @@ public interface CompteDao extends JpaRepository<Compte, String> {
     // ===================== RECHERCHE PAR NUMERO =====================
     Optional<Compte> findByNumero(String numero);
 
+    Optional<Compte> findByRib(String rib);
+
     boolean existsByNumero(String numero);
 
     // ===================== RECHERCHE PAR CLASSE =====================

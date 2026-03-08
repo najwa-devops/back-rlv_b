@@ -1,6 +1,7 @@
 package com.example.releve_bancaire.banking_controller;
 
 import com.example.releve_bancaire.account_tier.Compte;
+import com.example.releve_bancaire.banking_services.BankJournalResolverService;
 import com.example.releve_bancaire.repository.CompteDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class AccountingAccountController {
 
     private final CompteDao compteDao;
+    private final BankJournalResolverService bankJournalResolverService;
 
     /**
      * V2 endpoint - for internal use only
@@ -38,12 +40,15 @@ public class AccountingAccountController {
     public ResponseEntity<?> options() {
         List<AccountOption> options = compteDao.findAllByOrderByNumeroAsc()
                 .stream()
-                .map(compte -> new AccountOption(compte.getNumero(), compte.getLibelle()))
+                .map(compte -> new AccountOption(
+                        compte.getNumero(),
+                        compte.getLibelle(),
+                        bankJournalResolverService.findCodejrnByCompte(compte.getNumero()).orElse("")))
                 .toList();
 
         return ResponseEntity.ok(Map.of("count", options.size(), "comptes", options));
     }
 
-    private record AccountOption(String code, String libelle) {
+    private record AccountOption(String code, String libelle, String codejrn) {
     }
 }

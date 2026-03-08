@@ -9,6 +9,7 @@ import com.example.releve_bancaire.banking_repository.BankStatementRepository;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
 import com.example.releve_bancaire.banking_services.BankFileStorageService;
 import com.example.releve_bancaire.banking_services.BankAliasResolver;
+import com.example.releve_bancaire.banking_services.BankJournalResolverService;
 import com.example.releve_bancaire.banking_services.BankStatementProcessingService;
 import com.example.releve_bancaire.banking_services.BankTransactionAccountLearningService;
 import com.example.releve_bancaire.banking_services.BankStatementValidatorService;
@@ -55,6 +56,7 @@ public class BankStatementController {
     private final BankStatementValidatorService validatorService;
     private final ComptabilisationWorkflowService comptabilisationWorkflowService;
     private final BankTransactionAccountLearningService accountLearningService;
+    private final BankJournalResolverService bankJournalResolverService;
     private final BankFileStorageService bankFileStorageService;
     @Value("${banking.storage.mode:FILE_SYSTEM}")
     private String bankingStorageMode;
@@ -650,6 +652,10 @@ public class BankStatementController {
                 source.getTransactions().stream()
                         .map(this::resolveDisplayedCompte)
                         .toList());
+        Map<String, String> journalCodesByCompte = bankJournalResolverService.findCodejrnsByComptes(
+                source.getTransactions().stream()
+                        .map(this::resolveDisplayedCompte)
+                        .toList());
 
         List<Map<String, Object>> transactions = source.getTransactions().stream()
                 .map(t -> {
@@ -670,6 +676,7 @@ public class BankStatementController {
                     String displayedCompte = resolveDisplayedCompte(t);
                     txMap.put("compte", displayedCompte);
                     txMap.put("compteLibelle", accountLabelsByCode.getOrDefault(displayedCompte, ""));
+                    txMap.put("codejrn", journalCodesByCompte.getOrDefault(displayedCompte, ""));
                     txMap.put("isLinked", displayIsLinked(t.getIsLinked(), displayedCompte));
                     txMap.put("sens", t.getSens());
                     txMap.put("isValid", t.getIsValid());
