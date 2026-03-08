@@ -1,14 +1,17 @@
 package com.example.releve_bancaire.accounting_services;
 
+import com.example.releve_bancaire.account_tier.Compte;
 import com.example.releve_bancaire.accounting_entity.AccountingEntry;
 import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
-import com.example.releve_bancaire.accounting_repository.CptjournalJdbcRepository;
+import com.example.releve_bancaire.accounting_repository.CptjornalJdbcRepository;
 import com.example.releve_bancaire.accounting_repository.CptjournalSyncTrackerRepository;
+import com.example.releve_bancaire.banking_services.BankJournalResolverService;
 import com.example.releve_bancaire.banking_entity.BankStatement;
 import com.example.releve_bancaire.banking_entity.BankStatus;
 import com.example.releve_bancaire.banking_entity.BankTransaction;
 import com.example.releve_bancaire.banking_repository.BankStatementRepository;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
+import com.example.releve_bancaire.repository.CompteDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,8 +40,10 @@ public class ComptabilisationWorkflowService {
     private final BankStatementRepository bankStatementRepository;
     private final BankTransactionRepository bankTransactionRepository;
     private final AccountingEntryRepository accountingEntryRepository;
-    private final CptjournalJdbcRepository cptjournalJdbcRepository;
+    private final CptjornalJdbcRepository cptjornalJdbcRepository;
     private final CptjournalSyncTrackerRepository cptjournalSyncTrackerRepository;
+    private final BankJournalResolverService bankJournalResolverService;
+    private final CompteDao compteDao;
 
     @Value("${accounting.default-journal:BQ}")
     private String defaultJournal;
@@ -63,13 +68,12 @@ public class ComptabilisationWorkflowService {
             throw new IllegalArgumentException("Aucune transaction a comptabiliser pour ce releve.");
         }
 
-        String journal = sanitizeJournal(defaultJournal);
-        String bankAccount = sanitizeAccount(principalAccount, "compte principal");
+        String bankAccount = resolvePrincipalBankAccount(statement);
 
         int nmois = resolveMonth(statement, transactions);
         String moisTexte = monthLabel(nmois);
         String nmoisTexte = String.format("%02d", nmois);
-        long fallbackNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois) + 1;
+        Map<String, Long> fallbackNumeroByJournal = new ConcurrentHashMap<>();
 
         List<SimulatedEntry> rows = new ArrayList<>();
         for (BankTransaction tx : transactions) {
@@ -82,11 +86,9 @@ public class ComptabilisationWorkflowService {
             BigDecimal credit = tx.getCredit() == null ? BigDecimal.ZERO : tx.getCredit();
             String libelle = tx.getLibelle() == null ? "" : tx.getLibelle();
             String contrepartie = sanitizeTransactionAccount(tx.getCompte());
+            String journal = resolveJournalForAccount(bankAccount);
 
-            long numeroMain = resolveTransactionNumero(tx, fallbackNumero);
-            if (tx.getTransactionIndex() == null || tx.getTransactionIndex() <= 0) {
-                fallbackNumero++;
-            }
+            long numeroMain = resolveTransactionNumero(tx, journal, nmois, fallbackNumeroByJournal);
             // 1ere ecriture: compte de la transaction choisi dans le detail du releve.
             rows.add(new SimulatedEntry(
                     numeroMain,
@@ -120,12 +122,16 @@ public class ComptabilisationWorkflowService {
         simulations.put(simulationId, new SimulationContext(
                 simulationId,
                 statementId,
-                journal,
                 nmois,
                 rows,
                 LocalDateTime.now()));
 
-        return new SimulationResult(simulationId, statementId, journal, nmois, rows);
+        return new SimulationResult(
+                simulationId,
+                statementId,
+                rows.isEmpty() ? sanitizeJournal(defaultJournal) : rows.get(0).journal(),
+                nmois,
+                rows);
     }
 
     @Transactional
@@ -140,8 +146,8 @@ public class ComptabilisationWorkflowService {
         }
 
         List<AccountingEntry> entries = new ArrayList<>(context.rows().size());
-        List<CptjournalJdbcRepository.CptjournalRow> cptjournalRows = new ArrayList<>(context.rows().size());
-        long cptjournalBaseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+        List<CptjornalJdbcRepository.CptjornalRow> cptjornalRows = new ArrayList<>(context.rows().size());
+        long cptjornalBaseNumero = cptjornalJdbcRepository.findMaxNumero() + 1;
         for (SimulatedEntry row : context.rows()) {
             AccountingEntry entry = new AccountingEntry();
             entry.setNumero(row.numero());
@@ -152,7 +158,7 @@ public class ComptabilisationWorkflowService {
             entry.setEcriture(row.libelle());
             entry.setDebit(row.debit());
             entry.setCredit(row.credit());
-            entry.setNdosjrn(context.journal());
+            entry.setNdosjrn(row.journal());
             entry.setNcompte(row.ncompte());
             entry.setSourceStatementId(context.statementId());
             entry.setSourceTransactionId(row.sourceTransactionId());
@@ -160,11 +166,11 @@ public class ComptabilisationWorkflowService {
             entry.setBatchId(simulationId);
             entries.add(entry);
 
-            long numeroCptjournal = cptjournalBaseNumero + (row.numero() - 1L);
+            long numeroCptjornal = cptjornalBaseNumero + (row.numero() - 1L);
             LocalDate dateOperation = row.dateOperation();
-            cptjournalRows.add(new CptjournalJdbcRepository.CptjournalRow(
-                    numeroCptjournal,
-                    context.journal(),
+            cptjornalRows.add(new CptjornalJdbcRepository.CptjornalRow(
+                    numeroCptjornal,
+                    row.journal(),
                     context.nmois(),
                     row.moisTexte(),
                     row.ncompte(),
@@ -173,13 +179,12 @@ public class ComptabilisationWorkflowService {
                     row.credit(),
                     VALIDER_TRUE,
                     dateOperation,
-                    dateOperation.getDayOfMonth(),
-                    dateOperation.getYear(),
+                    dateOperation,
                     resolveMntRester(row.ncompte(), row.debit(), row.credit())));
         }
         accountingEntryRepository.saveAll(entries);
         if (!cptjournalSyncTrackerRepository.isSynced(context.statementId())) {
-            cptjournalJdbcRepository.insertAll(cptjournalRows);
+            cptjornalJdbcRepository.insertAll(cptjornalRows);
             cptjournalSyncTrackerRepository.markSynced(context.statementId());
         }
 
@@ -224,9 +229,9 @@ public class ComptabilisationWorkflowService {
                 .filter(n -> n != null)
                 .min(Long::compareTo)
                 .orElse(1L);
-        long baseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+        long baseNumero = cptjornalJdbcRepository.findMaxNumero() + 1;
 
-        List<CptjournalJdbcRepository.CptjournalRow> rows = new ArrayList<>(entries.size());
+        List<CptjornalJdbcRepository.CptjornalRow> rows = new ArrayList<>(entries.size());
         for (AccountingEntry entry : entries) {
             LocalDate date = entry.getDateComplete();
             if (date == null) {
@@ -235,9 +240,9 @@ public class ComptabilisationWorkflowService {
             long numero = baseNumero + (entry.getNumero() - minNumero);
             BigDecimal debit = entry.getDebit() == null ? BigDecimal.ZERO : entry.getDebit();
             BigDecimal credit = entry.getCredit() == null ? BigDecimal.ZERO : entry.getCredit();
-            rows.add(new CptjournalJdbcRepository.CptjournalRow(
+            rows.add(new CptjornalJdbcRepository.CptjornalRow(
                     numero,
-                    entry.getNdosjrn(),
+                    sanitizeJournal(entry.getNdosjrn()),
                     entry.getNmois(),
                     entry.getMois(),
                     entry.getNcompte(),
@@ -246,12 +251,11 @@ public class ComptabilisationWorkflowService {
                     credit,
                     VALIDER_TRUE,
                     date,
-                    date.getDayOfMonth(),
-                    date.getYear(),
+                    date,
                     resolveMntRester(entry.getNcompte(), debit, credit)));
         }
 
-        cptjournalJdbcRepository.insertAll(rows);
+        cptjornalJdbcRepository.insertAll(rows);
         cptjournalSyncTrackerRepository.markSynced(statementId);
         return rows.size();
     }
@@ -298,11 +302,39 @@ public class ComptabilisationWorkflowService {
         return value.matches(ACCOUNT_CODE_REGEX) ? value : DEFAULT_TX_COMPTE;
     }
 
-    private long resolveTransactionNumero(BankTransaction tx, long fallbackNumero) {
+    private long resolveTransactionNumero(
+            BankTransaction tx,
+            String journal,
+            int month,
+            Map<String, Long> fallbackNumeroByJournal) {
         if (tx.getTransactionIndex() != null && tx.getTransactionIndex() > 0) {
             return tx.getTransactionIndex().longValue();
         }
-        return fallbackNumero;
+        return fallbackNumeroByJournal.compute(journal, (key, current) -> {
+            if (current != null) {
+                return current + 1;
+            }
+            Long maxNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, month);
+            return (maxNumero == null ? 0L : maxNumero) + 1L;
+        });
+    }
+
+    private String resolveJournalForAccount(String account) {
+        return bankJournalResolverService.findCodejrnByCompte(account)
+                .map(this::sanitizeJournal)
+                .orElseGet(() -> sanitizeJournal(defaultJournal));
+    }
+
+    private String resolvePrincipalBankAccount(BankStatement statement) {
+        String rib = statement.getRib();
+        if (rib != null && !rib.isBlank()) {
+            String normalizedRib = rib.trim();
+            Compte compte = compteDao.findByRib(normalizedRib).orElse(null);
+            if (compte != null && compte.getNumero() != null && !compte.getNumero().isBlank()) {
+                return sanitizeAccount(compte.getNumero(), "compte principal");
+            }
+        }
+        return sanitizeAccount(principalAccount, "compte principal");
     }
 
     private BigDecimal resolveMntRester(String ncompte, BigDecimal debit, BigDecimal credit) {
@@ -322,7 +354,6 @@ public class ComptabilisationWorkflowService {
     private record SimulationContext(
             String simulationId,
             Long statementId,
-            String journal,
             int nmois,
             List<SimulatedEntry> rows,
             LocalDateTime createdAt) {

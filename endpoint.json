@@ -1,0 +1,1909 @@
+{
+  "generated_at": "2026-03-05",
+  "project": "back-rlv_b",
+  "total_endpoints": 190,
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/AccountingAccountController.java:26"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/accounts",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateAccountRequest",
+            "example": {
+              "code": "<String>",
+              "libelle": "<String>",
+              "tvaRate": "<Double>",
+              "active": "<Boolean>",
+              "createdBy": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/by-classe/{classe}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:118"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/by-code/{code}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:73"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/charges",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:151"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/fournisseurs",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:138"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/accounts/import",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "requests",
+            "type": "List<CreateAccountRequest>",
+            "example": [
+              {
+                "code": "<String>",
+                "libelle": "<String>",
+                "tvaRate": "<Double>",
+                "active": "<Boolean>",
+                "createdBy": "<String>"
+              }
+            ]
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:268"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/options",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/AccountingAccountController.java:39"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:105"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:257"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/tva",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:164"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/accounting/accounts/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:206"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/accounts/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:57"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/accounting/accounts/{id}",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpdateAccountRequest",
+            "example": {
+              "libelle": "<String>",
+              "active": "<Boolean>",
+              "updatedBy": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:178"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/accounting/accounts/{id}/activate",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/AccountController.java:231"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/generate-from-xml",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"xmlFile\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/AccountingGenerationController.java:28"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/generate-from-xml-url",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "GenerateFromXmlUrlRequest",
+            "example": "<GenerateFromXmlUrlRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/AccountingGenerationController.java:59"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/journal/defaults",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/accounting/AccountingJournalController.java:69"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/accounting/journal/defaults",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/accounting/AccountingJournalController.java:90"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/journal/entries",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/accounting/AccountingJournalController.java:46"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/journal/entries/from-invoice/{id}",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/accounting/AccountingJournalController.java:119"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/journal/entries/rebuild/{id}",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/accounting/AccountingJournalController.java:181"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:118"
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounting/tiers",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateTierRequest",
+            "example": {
+              "auxiliaireMode": "<Boolean>",
+              "tierNumber": "<String>",
+              "collectifAccount": "<String>",
+              "libelle": "<String>",
+              "ifNumber": "<String>",
+              "ice": "<String>",
+              "rcNumber": "<String>",
+              "defaultChargeAccount": "<String>",
+              "tvaAccount": "<String>",
+              "defaultTvaRate": "<Double>",
+              "active": "<Boolean>",
+              "createdBy": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:39"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/auxiliaire",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:200"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/by-ice/{ice}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:90"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/by-if/{ifNumber}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:104"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/by-tier-number/{tierNumber}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:76"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/normal",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:211"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:131"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:285"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/with-config",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:143"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/with-ice",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:167"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/with-if",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:178"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/without-config",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:155"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/without-identifier",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:189"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/accounting/tiers/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:245"
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounting/tiers/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:62"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/accounting/tiers/{id}",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpdateTierRequest",
+            "example": {
+              "tierNumber": "<String>",
+              "collectifAccount": "<String>",
+              "libelle": "<String>",
+              "ifNumber": "<String>",
+              "ice": "<String>",
+              "rcNumber": "<String>",
+              "defaultChargeAccount": "<String>",
+              "tvaAccount": "<String>",
+              "defaultTvaRate": "<Double>",
+              "active": "<Boolean>",
+              "updatedBy": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:222"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/accounting/tiers/{id}/activate",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/account_tier/TierController.java:265"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "LoginRequest",
+            "example": {
+              "username": "<String>",
+              "password": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/auth/controller/AuthController.java:24"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/AuthController.java:37"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/auth/controller/AuthController.java:36"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/users",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/UserAdminController.java:48"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/users",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateUserRequest",
+            "example": {
+              "username": "<String>",
+              "password": "<String>",
+              "role": "<UserRole>",
+              "displayName": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/UserAdminController.java:29"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/auth/users/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/UserAdminController.java:57"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/auth/users/{id}/active",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpdateUserActiveRequest",
+            "example": {
+              "active": "<Boolean>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/UserAdminController.java:79"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/auth/users/{id}/role",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpdateUserRoleRequest",
+            "example": {
+              "role": "<UserRole>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/UserAdminController.java:68"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:193"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/bank-statements/all",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:252"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/bank-options",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:495"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/files/{filename}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:504"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:472"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/upload",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"file\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:64"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/bank-statements/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:238"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:157"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/{id}/final",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:173"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/{id}/ocr-text",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:181"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/process",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:135"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/retry-failed",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:135"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/bank-statements/{id}/status",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:316"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:406"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:392"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:378"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:417"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:399"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:385"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/validate",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:263"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-statements/{id}/validate-full",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:294"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-transactions",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateBankTransactionRequest",
+            "example": "<CreateBankTransactionRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:165"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/bank-transactions/bulk-update",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:215"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-transactions/reindex/{statementId}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:380"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-transactions/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:62"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-transactions/statement/{statementId}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:50"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-transactions/stats/by-categorie",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:343"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-transactions/stats/need-review",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:367"
+    },
+    {
+      "method": "GET",
+      "path": "/api/bank-transactions/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:43"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/bank-transactions/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:97"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-transactions/{id}/mark-for-review",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:317"
+    },
+    {
+      "method": "POST",
+      "path": "/api/bank-transactions/{id}/mark-valid",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:298"
+    },
+    {
+      "method": "POST",
+      "path": "/api/comptabilisation/confirm",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "ConfirmRequest",
+            "example": "<ConfirmRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/ComptabilisationWorkflowController.java:42"
+    },
+    {
+      "method": "POST",
+      "path": "/api/comptabilisation/simulate",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "SimulateRequest",
+            "example": "<SimulateRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/ComptabilisationWorkflowController.java:26"
+    },
+    {
+      "method": "GET",
+      "path": "/api/comptes",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/ComptesController.java:33"
+    },
+    {
+      "method": "GET",
+      "path": "/api/comptes/by-code/{code}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/ComptesController.java:110"
+    },
+    {
+      "method": "GET",
+      "path": "/api/comptes/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/ComptesController.java:86"
+    },
+    {
+      "method": "GET",
+      "path": "/api/comptes/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/ComptesController.java:96"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dossiers",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/DossierController.java:71"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dossiers",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateDossierRequest",
+            "example": {
+              "clientId": "<Long>",
+              "clientUsername": "<String>",
+              "clientPassword": "<String>",
+              "clientDisplayName": "<String>",
+              "dossierName": "<String>",
+              "comptableId": "<Long>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/DossierController.java:31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dossiers/active",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/DossierController.java:134"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dossiers/active",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/auth/DossierController.java:100"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-invoices",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:254"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/bulk/delete",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "body",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:628"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/bulk/process",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "body",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:482"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/bulk/validate",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "body",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:546"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-invoices/files/{filename}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:857"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-invoices/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:795"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/upload",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"file\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:54"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/upload/batch",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"files\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:115"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/dynamic-invoices/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:295"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-invoices/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:230"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-invoices/{id}/available-signatures",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:714"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/{id}/client-validate",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:441"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/dynamic-invoices/{id}/fields",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "fields",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:350"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/{id}/link-tier",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, Long>",
+            "example": {
+              "<key>": "<Long>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:940"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/{id}/process",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:197"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-invoices/{id}/validate",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicInvoiceController.java:395"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:97"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-templates",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateDynamicTemplateRequest",
+            "example": {
+              "templateName": "<String>",
+              "supplierType": "<String>",
+              "signature": "<SignatureRequest>",
+              "fixedSupplierData": "<FixedSupplierDataRequest>",
+              "description": "<String>",
+              "createdBy": "<String>",
+              "fieldDefinitions": [
+                "<FieldDefinitionRequest>"
+              ],
+              "type": "<String>",
+              "value": "<String>",
+              "ice": "<String>",
+              "ifNumber": "<String>",
+              "rcNumber": "<String>",
+              "supplier": "<String>",
+              "address": "<String>",
+              "phone": "<String>",
+              "email": "<String>",
+              "city": "<String>",
+              "postalCode": "<String>",
+              "fieldName": "<String>",
+              "labels": [
+                "<String>"
+              ],
+              "regexPattern": "<String>",
+              "fieldType": "<String>",
+              "detectionMethod": "<String>",
+              "required": "<Boolean>",
+              "confidenceThreshold": "<Double>",
+              "defaultValue": "<String>",
+              "searchZone": "<String>",
+              "extractionOrder": "<Integer>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:56"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates/by-supplier",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:145"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates/by-supplier-type/{supplierType}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:120"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-templates/detect",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "body",
+            "type": "Map<String, String>",
+            "example": {
+              "<key>": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:461"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-templates/extract-file",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"file\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:358"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-templates/extract/{invoiceId}",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "false",
+            "type": "(value = \"dossierId\", required ="
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:178"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates/reliable",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:132"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:108"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/dynamic-templates/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:161"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dynamic-templates/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:86"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/dynamic-templates/{id}",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpdateDynamicTemplateRequest",
+            "example": {
+              "fieldDefinitions": [
+                "<FieldDefinitionRequest>"
+              ],
+              "fixedSupplierData": "<FixedSupplierDataRequest>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:482"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/dynamic-templates/{id}",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateDynamicTemplateRequest",
+            "example": {
+              "templateName": "<String>",
+              "supplierType": "<String>",
+              "signature": "<SignatureRequest>",
+              "fixedSupplierData": "<FixedSupplierDataRequest>",
+              "description": "<String>",
+              "createdBy": "<String>",
+              "fieldDefinitions": [
+                "<FieldDefinitionRequest>"
+              ],
+              "type": "<String>",
+              "value": "<String>",
+              "ice": "<String>",
+              "ifNumber": "<String>",
+              "rcNumber": "<String>",
+              "supplier": "<String>",
+              "address": "<String>",
+              "phone": "<String>",
+              "email": "<String>",
+              "city": "<String>",
+              "postalCode": "<String>",
+              "fieldName": "<String>",
+              "labels": [
+                "<String>"
+              ],
+              "regexPattern": "<String>",
+              "fieldType": "<String>",
+              "detectionMethod": "<String>",
+              "required": "<Boolean>",
+              "confidenceThreshold": "<Double>",
+              "defaultValue": "<String>",
+              "searchZone": "<String>",
+              "extractionOrder": "<Integer>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:71"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dynamic-templates/{templateId}/test",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "body",
+            "type": "Map<String, String>",
+            "example": {
+              "<key>": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/DynamicTemplateController.java:439"
+    },
+    {
+      "method": "GET",
+      "path": "/api/field-patterns",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/pattern/FieldPatternController.java:21"
+    },
+    {
+      "method": "POST",
+      "path": "/api/field-patterns",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "pattern",
+            "type": "FieldPattern",
+            "example": {
+              "id": "<Long>",
+              "fieldName": "<String>",
+              "patternRegex": "<String>",
+              "priority": "<Integer>",
+              "active": "<Boolean>",
+              "description": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/pattern/FieldPatternController.java:26"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/field-patterns/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/pattern/FieldPatternController.java:36"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/field-patterns/{id}",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "pattern",
+            "type": "FieldPattern",
+            "example": {
+              "id": "<Long>",
+              "fieldName": "<String>",
+              "patternRegex": "<String>",
+              "priority": "<Integer>",
+              "active": "<Boolean>",
+              "description": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/pattern/FieldPatternController.java:31"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lite/invoices",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/LiteOcrController.java:51"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lite/invoices/upload",
+      "body": {
+        "type": "multipart/form-data",
+        "schema": [
+          {
+            "name": "file",
+            "type": "MultipartFile"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/LiteOcrController.java:35"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lite/invoices/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/LiteOcrController.java:79"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/invoices",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/PublicInvoiceController.java:99"
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/invoices/upload",
+      "body": {
+        "type": "multipart/form-data",
+        "schema": [
+          {
+            "name": "file",
+            "type": "MultipartFile"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/PublicInvoiceController.java:57"
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/invoices/upload/batch",
+      "body": {
+        "type": "multipart/form-data",
+        "schema": [
+          {
+            "name": "files",
+            "type": "List<MultipartFile>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/PublicInvoiceController.java:69"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/invoices/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/PublicInvoiceController.java:131"
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/invoices/{id}/file",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/PublicInvoiceController.java:147"
+    },
+    {
+      "method": "GET",
+      "path": "/api/settings/general-params",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/settings/GeneralParamsController.java:33"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/settings/general-params",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "UpsertDossierGeneralParamsRequest",
+            "example": {
+              "companyName": "<String>",
+              "address": "<String>",
+              "legalForm": "<String>",
+              "rcNumber": "<String>",
+              "ifNumber": "<String>",
+              "tsc": "<String>",
+              "activity": "<String>",
+              "category": "<String>",
+              "professionalTax": "<String>",
+              "ice": "<String>",
+              "cniOrResidenceCard": "<String>",
+              "legalRepresentative": "<String>",
+              "cmRate": "<BigDecimal>",
+              "isRate": "<BigDecimal>",
+              "capital": "<BigDecimal>",
+              "subjectToRas": "<Boolean>",
+              "individualPerson": "<Boolean>",
+              "hasFiscalRegularityCertificate": "<Boolean>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/settings/GeneralParamsController.java:46"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test/invoices",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/TestUploadController.java:101"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test/invoices/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/TestUploadController.java:146"
+    },
+    {
+      "method": "GET",
+      "path": "/api/test/status",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/TestUploadController.java:181"
+    },
+    {
+      "method": "POST",
+      "path": "/api/test/upload",
+      "body": {
+        "type": "multipart/form-data",
+        "schema": [
+          {
+            "name": "file",
+            "type": "MultipartFile"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/TestUploadController.java:35"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/accounting/accounts",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/AccountingAccountController.java:26"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/accounting/accounts/options",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/AccountingAccountController.java:39"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/accounting/generate-from-xml",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"xmlFile\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/AccountingGenerationController.java:28"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/accounting/generate-from-xml-url",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "GenerateFromXmlUrlRequest",
+            "example": "<GenerateFromXmlUrlRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/AccountingGenerationController.java:59"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:193"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v2/bank-statements/all",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:252"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/bank-options",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:495"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/files/{filename}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:504"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:472"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/upload",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(\"file\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:64"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v2/bank-statements/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:238"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:157"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/{id}/final",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:173"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/{id}/ocr-text",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:181"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/process",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:135"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/retry-failed",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:135"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/bank-statements/{id}/status",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:316"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:406"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:392"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/bank-statements/{id}/ttc-rule",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:378"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:417"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:399"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/bank-statements/{id}/ttc-toggle",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:385"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/validate",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:263"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-statements/{id}/validate-full",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankStatementController.java:294"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-transactions",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "CreateBankTransactionRequest",
+            "example": "<CreateBankTransactionRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:165"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/bank-transactions/bulk-update",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:215"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-transactions/reindex/{statementId}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:380"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-transactions/search",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:62"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-transactions/statement/{statementId}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:50"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-transactions/stats/by-categorie",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:343"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-transactions/stats/need-review",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:367"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/bank-transactions/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:43"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/bank-transactions/{id}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:97"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-transactions/{id}/mark-for-review",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:317"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/bank-transactions/{id}/mark-valid",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/banking_controller/BankTransactionController.java:298"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/comptabilisation/confirm",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "ConfirmRequest",
+            "example": "<ConfirmRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/ComptabilisationWorkflowController.java:42"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/comptabilisation/simulate",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "SimulateRequest",
+            "example": "<SimulateRequest>"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/accounting_controller/ComptabilisationWorkflowController.java:26"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/analyze/{fieldName}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:297"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/learning/bulk-approve",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, Object>",
+            "example": {
+              "<key>": "<Object>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:229"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/learning/integrate-all",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:264"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/invoice/{invoiceId}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:154"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/pending",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:143"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/stats",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:286"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/suggestions/{fieldName}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:308"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/learning/supplier/{ice}",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:165"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/learning/test-pattern",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "Map<String, String>",
+            "example": {
+              "<key>": "<String>"
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:340"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/learning/{id}/approve",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": "approvedBy",
+            "type": "String"
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:178"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/learning/{id}/reject",
+      "body": {
+        "type": "form-or-query",
+        "schema": [
+          {
+            "name": null,
+            "type": "(defaultValue = \"admin\""
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:203"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v2/{id}/learn-patterns",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "SaveFieldsWithPatternsRequest",
+            "example": {
+              "fieldsData": {
+                "<key>": "<Object>"
+              },
+              "fieldPatterns": {
+                "<key>": "<String>"
+              },
+              "patternPositions": {
+                "<key>": {
+                  "<key>": "<max-depth>"
+                }
+              },
+              "valuePositions": {
+                "<key>": {
+                  "<key>": "<max-depth>"
+                }
+              },
+              "fieldZones": {
+                "<key>": "<String>"
+              },
+              "ocrContexts": {
+                "<key>": "<String>"
+              },
+              "confidenceScores": {
+                "<key>": "<Double>"
+              },
+              "userId": "<String>",
+              "detectionMethod": "<String>",
+              "newPatterns": {
+                "<key>": "<String>"
+              }
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:123"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v2/{invoiceId}/fields-with-patterns",
+      "body": {
+        "type": "application/json",
+        "schema": [
+          {
+            "name": "request",
+            "type": "SaveFieldsWithPatternsRequest",
+            "example": {
+              "fieldsData": {
+                "<key>": "<Object>"
+              },
+              "fieldPatterns": {
+                "<key>": "<String>"
+              },
+              "patternPositions": {
+                "<key>": {
+                  "<key>": "<max-depth>"
+                }
+              },
+              "valuePositions": {
+                "<key>": {
+                  "<key>": "<max-depth>"
+                }
+              },
+              "fieldZones": {
+                "<key>": "<String>"
+              },
+              "ocrContexts": {
+                "<key>": "<String>"
+              },
+              "confidenceScores": {
+                "<key>": "<Double>"
+              },
+              "userId": "<String>",
+              "detectionMethod": "<String>",
+              "newPatterns": {
+                "<key>": "<String>"
+              }
+            }
+          }
+        ]
+      },
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:77"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/{invoiceId}/test",
+      "body": null,
+      "source": "src/main/java/com/example/releve_bancaire/controller/dynamic/FieldLearningController.java:374"
+    }
+  ]
+}

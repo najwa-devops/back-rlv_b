@@ -18,6 +18,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDate;
@@ -439,20 +442,35 @@ public class BankStatementProcessingService {
 
     private String performExtraction(BankStatement statement) {
         byte[] fileData = statement.getFileData();
-        if (fileData == null || fileData.length == 0) {
-            throw new RuntimeException("Fichier introuvable en base. id=" + statement.getId()
-                    + ", filename=" + statement.getFilename());
+        if (fileData != null && fileData.length > 0) {
+            String sourceName = statement.getOriginalName() != null ? statement.getOriginalName() : statement.getFilename();
+            log.info("Extraction du fichier en base: {} ({} bytes)", sourceName, fileData.length);
+
+            String extractedText = bankStatementProcessor.process(fileData, sourceName);
+            if (extractedText == null || extractedText.trim().isEmpty()) {
+                throw new RuntimeException("Le processeur n'a extrait aucun texte du fichier");
+            }
+
+            log.info("✅ Extraction terminée: {} caractères", extractedText.length());
+            return extractedText;
         }
 
-        String sourceName = statement.getOriginalName() != null ? statement.getOriginalName() : statement.getFilename();
-        log.info("Extraction du fichier en base: {} ({} bytes)", sourceName, fileData.length);
-
-        String extractedText = bankStatementProcessor.process(fileData, sourceName);
+        String filePath = statement.getFilePath();
+        if (filePath == null || filePath.isBlank()) {
+            throw new RuntimeException("Fichier introuvable (aucun BLOB et filePath vide). id=" + statement.getId()
+                    + ", filename=" + statement.getFilename());
+        }
+        Path sourcePath = Paths.get(filePath).toAbsolutePath().normalize();
+        if (!Files.exists(sourcePath) || !Files.isRegularFile(sourcePath)) {
+            throw new RuntimeException("Fichier introuvable sur disque: " + sourcePath);
+        }
+        log.info("Extraction du fichier sur disque: {}", sourcePath);
+        String extractedText = bankStatementProcessor.process(sourcePath.toFile());
         if (extractedText == null || extractedText.trim().isEmpty()) {
             throw new RuntimeException("Le processeur n'a extrait aucun texte du fichier");
         }
 
-        log.info("✅ Extraction terminée: {} caractères", extractedText.length());
+        log.info("✅ Extraction terminée depuis disque: {} caractères", extractedText.length());
         return extractedText;
     }
 

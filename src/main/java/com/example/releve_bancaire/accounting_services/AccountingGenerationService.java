@@ -2,7 +2,7 @@ package com.example.releve_bancaire.accounting_services;
 
 import com.example.releve_bancaire.accounting_entity.AccountingEntry;
 import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
-import com.example.releve_bancaire.accounting_repository.CptjournalJdbcRepository;
+import com.example.releve_bancaire.accounting_repository.CptjornalJdbcRepository;
 import com.example.releve_bancaire.banking_entity.BankTransaction;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class AccountingGenerationService {
     private final WinsOsXmlParser winsOsXmlParser;
     private final BankTransactionRepository bankTransactionRepository;
     private final AccountingEntryRepository accountingEntryRepository;
-    private final CptjournalJdbcRepository cptjournalJdbcRepository;
+    private final CptjornalJdbcRepository cptjornalJdbcRepository;
 
     @Transactional
     public GenerationResult generateFromXml(byte[] xmlBytes, int nmois, Integer year) {
@@ -53,13 +53,16 @@ public class AccountingGenerationService {
                     "Aucune transaction VALIDATED/COMPTABILISE trouvee pour le mois demande.");
         }
 
-        long currentMax = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois);
+        Long currentMax = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois);
+        if (currentMax == null) {
+            currentMax = 0L;
+        }
         long nextNumero = currentMax + 1;
-        long cptjournalBaseNumero = cptjournalJdbcRepository.findMaxNumero() + 1;
+        long cptjornalBaseNumero = cptjornalJdbcRepository.findMaxNumero() + 1;
         String monthLabel = monthLabel(nmois);
 
         List<AccountingEntry> toInsert = new ArrayList<>(transactions.size() * 2);
-        List<CptjournalJdbcRepository.CptjournalRow> cptjournalRows = new ArrayList<>(transactions.size() * 2);
+        List<CptjornalJdbcRepository.CptjornalRow> cptjornalRows = new ArrayList<>(transactions.size() * 2);
         long fallbackTransactionNumero = 1L;
         long maxTransactionNumero = 0L;
         for (BankTransaction tx : transactions) {
@@ -76,14 +79,14 @@ public class AccountingGenerationService {
             if (tx.getTransactionIndex() == null || tx.getTransactionIndex() <= 0) {
                 nextNumero++;
             }
-            long transactionNumeroForCptjournal = resolveTransactionNumero(tx, fallbackTransactionNumero);
+            long transactionNumeroForCptjornal = resolveTransactionNumero(tx, fallbackTransactionNumero);
             if (tx.getTransactionIndex() == null || tx.getTransactionIndex() <= 0) {
                 fallbackTransactionNumero++;
             }
-            if (transactionNumeroForCptjournal > maxTransactionNumero) {
-                maxTransactionNumero = transactionNumeroForCptjournal;
+            if (transactionNumeroForCptjornal > maxTransactionNumero) {
+                maxTransactionNumero = transactionNumeroForCptjornal;
             }
-            long numeroCptjournal = cptjournalBaseNumero + (transactionNumeroForCptjournal - 1L);
+            long numeroCptjornal = cptjornalBaseNumero + (transactionNumeroForCptjornal - 1L);
             int jour = tx.getDateOperation().getDayOfMonth();
             int annee = tx.getDateOperation().getYear();
 
@@ -119,8 +122,8 @@ public class AccountingGenerationService {
             counterpart.setIsCounterpart(true);
             toInsert.add(counterpart);
 
-            cptjournalRows.add(new CptjournalJdbcRepository.CptjournalRow(
-                    numeroCptjournal,
+            cptjornalRows.add(new CptjornalJdbcRepository.CptjornalRow(
+                    numeroCptjornal,
                     journal,
                     nmois,
                     monthLabel,
@@ -130,12 +133,11 @@ public class AccountingGenerationService {
                     credit,
                     VALIDER_TRUE,
                     tx.getDateOperation(),
-                    jour,
-                    annee,
+                    tx.getDateOperation(),
                     resolveMntRester(compteTransaction, debit, credit)));
 
-            cptjournalRows.add(new CptjournalJdbcRepository.CptjournalRow(
-                    numeroCptjournal,
+            cptjornalRows.add(new CptjornalJdbcRepository.CptjornalRow(
+                    numeroCptjornal,
                     journal,
                     nmois,
                     monthLabel,
@@ -145,25 +147,24 @@ public class AccountingGenerationService {
                     debit,
                     VALIDER_TRUE,
                     tx.getDateOperation(),
-                    jour,
-                    annee,
+                    tx.getDateOperation(),
                     resolveMntRester(compteContrepartieXml, credit, debit)));
         }
 
         accountingEntryRepository.saveAll(toInsert);
-        cptjournalJdbcRepository.insertAll(cptjournalRows);
+        cptjornalJdbcRepository.insertAll(cptjornalRows);
         log.info("Comptabilisation auto terminee: {} ecritures generees (journal={}, nmois={})",
                 toInsert.size(), journal, nmois);
 
         boolean xmlContainsCredentials = payload.xmlDbUser() != null || payload.xmlDbPassword() != null;
-        long lastCptjournalNumero = maxTransactionNumero > 0
-                ? cptjournalBaseNumero + (maxTransactionNumero - 1L)
-                : cptjournalBaseNumero - 1L;
+        long lastCptjornalNumero = maxTransactionNumero > 0
+                ? cptjornalBaseNumero + (maxTransactionNumero - 1L)
+                : cptjornalBaseNumero - 1L;
         return new GenerationResult(
                 toInsert.size(),
                 nmois,
                 journal,
-                lastCptjournalNumero,
+                lastCptjornalNumero,
                 xmlContainsCredentials,
                 xmlContainsCredentials
                         ? "Credentials detectes dans XML mais ignores. Utilisation de la configuration env."

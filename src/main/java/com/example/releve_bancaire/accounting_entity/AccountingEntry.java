@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "AccountingEntry")
 @Table(name = "accounting_entry", indexes = {
         @Index(name = "idx_acc_entry_journal_month_numero", columnList = "ndosjrn,nmois,numero"),
         @Index(name = "idx_acc_entry_date_complete", columnList = "date_complete"),

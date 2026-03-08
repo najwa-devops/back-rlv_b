@@ -7,6 +7,7 @@ import com.example.releve_bancaire.auth.entity.AppRole;
 import com.example.releve_bancaire.auth.entity.AppUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,14 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Profile("no-auth")
 public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         AppUser user = buildLocalNoAuthUser(request.email());
-        String token = "no-auth-token";
         LoginResponse response = new LoginResponse(
-                token,
                 user.getId(),
                 user.getEmail(),
                 user.getRole().name(),

@@ -5,6 +5,7 @@ import com.example.releve_bancaire.banking_entity.BankStatement;
 import com.example.releve_bancaire.banking_entity.BankTransaction;
 import com.example.releve_bancaire.banking_repository.BankStatementRepository;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
+import com.example.releve_bancaire.banking_services.BankJournalResolverService;
 import com.example.releve_bancaire.banking_services.BankTransactionAccountLearningService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -37,6 +38,7 @@ public class BankTransactionController {
     private final BankTransactionRepository repository;
     private final BankStatementRepository statementRepository;
     private final BankTransactionAccountLearningService accountLearningService;
+    private final BankJournalResolverService bankJournalResolverService;
 
     // ==================== CONSULTATION ====================
 
@@ -404,6 +406,7 @@ public class BankTransactionController {
         String displayedCompte = resolveDisplayedCompte(transaction);
         response.put("compte", displayedCompte);
         response.put("compteLibelle", accountLearningService.findAccountLibelle(displayedCompte).orElse(""));
+        response.put("codejrn", bankJournalResolverService.findCodejrnByCompte(displayedCompte).orElse(""));
         response.put("isLinked", displayIsLinked(transaction.getIsLinked(), displayedCompte));
         response.put("categorie", transaction.getCategorie());
         response.put("role", transaction.getRole());
