@@ -19,12 +19,15 @@ public class SmartNumericClassifier implements NumericClassifier {
             "(?<!\\d)((?:\\d\\s+){1,}\\d)\\s*([,.])\\s*((?:\\d\\s+){1,}\\d)(?!\\d)");
     private static final Pattern TRAILING_TOKEN_PATTERN = Pattern.compile("(?:^|\\s)(\\d{1,2})\\s+(\\d{1,2})\\s*$");
     private static final Pattern TRAILING_DAY_ONLY_PATTERN = Pattern.compile("(?:^|\\s)(\\d{1,2})\\s*$");
+    private static final Pattern VIR_RECU_PATTERN = Pattern.compile("\\bVIR\\s*[\\./-]?\\s*RECU\\b");
+    private static final Pattern VIREMENT_VERS_CLIENT_PATTERN = Pattern.compile(
+            "\\bVIREMENT\\s*\\(?S?\\)?\\s+VERS\\s+CLIENT\\s*\\(?S?\\)?\\b");
     private static final int MIN_COLUMN_GAP = 10;
     private static final List<String> STRONG_DEBIT_HINTS = List.of(
             "OPERATION AU DEBIT", "PRELEVEMENT", "PRELEVEMENT SEPA", "RETRAIT", "PAIEMENT", "ACHAT", "CHEQUE",
             "FRAIS", "COMMISSION", "AGIOS", "COTISATION", "VIREMENT EMIS", "VIR.EMIS", "DIRECT DEBIT", "CASH OUT");
     private static final List<String> STRONG_CREDIT_HINTS = List.of(
-            "VIREMENT RECU", "VIR RECU", "VIR.RECU", "VIR ", "CREDIT VIREMENT", "VERSEMENT", "REMISE CHEQUE",
+            "VIREMENT RECU", "VIR RECU", "VIR.RECU", "CREDIT VIREMENT", "VERSEMENT", "REMISE CHEQUE",
             "REMISE", "ENCAISSEMENT", "REMBOURSEMENT", "SALAIRE", "PAYROLL", "SALARY", "REFUND", "CASH IN");
     private final OcrCleaningService cleaningService;
     private final BankLayoutProfileRegistry profileRegistry;
@@ -163,9 +166,10 @@ public class SmartNumericClassifier implements NumericClassifier {
 
     private boolean hasCreditHint(String description, TransactionExtractionContext context) {
         String upper = description == null ? "" : description.toUpperCase();
+        String normalizedUpper = normalizeHintText(upper);
         BankLayoutProfile profile = profileRegistry.getProfile(context.bankType());
         for (String h : profile.creditHints()) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 return true;
             }
         }
@@ -174,9 +178,10 @@ public class SmartNumericClassifier implements NumericClassifier {
 
     private boolean hasDebitHint(String description, TransactionExtractionContext context) {
         String upper = description == null ? "" : description.toUpperCase();
+        String normalizedUpper = normalizeHintText(upper);
         BankLayoutProfile profile = profileRegistry.getProfile(context.bankType());
         for (String h : profile.debitHints()) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 return true;
             }
         }
@@ -185,42 +190,56 @@ public class SmartNumericClassifier implements NumericClassifier {
 
     private AmountDirection inferDirection(String description, TransactionExtractionContext context) {
         String upper = description == null ? "" : description.toUpperCase();
+        String normalizedUpper = normalizeHintText(upper);
         BankLayoutProfile profile = profileRegistry.getProfile(context.bankType());
         int debitScore = 0;
         int creditScore = 0;
 
         for (String h : profile.debitHints()) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 debitScore++;
             }
         }
         for (String h : profile.creditHints()) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 creditScore++;
             }
         }
         for (String h : STRONG_DEBIT_HINTS) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 debitScore += 2;
             }
         }
         for (String h : STRONG_CREDIT_HINTS) {
-            if (upper.contains(h)) {
+            if (containsHint(upper, normalizedUpper, h)) {
                 creditScore += 2;
             }
         }
 
-        if (upper.contains("FRAIS TIMBRE") || upper.contains("COMMISSION")) {
+        if (containsHint(upper, normalizedUpper, "FRAIS TIMBRE")
+                || containsHint(upper, normalizedUpper, "COMMISSION")) {
             debitScore += 2;
         }
-        if (upper.contains("VIREMENT EMIS") || upper.contains("VIR.EMIS") || upper.contains("DIRECT DEBIT")) {
+        if (containsHint(upper, normalizedUpper, "VIREMENT EMIS")
+                || containsHint(upper, normalizedUpper, "VIR.EMIS")
+                || containsHint(upper, normalizedUpper, "DIRECT DEBIT")) {
             debitScore += 3;
         }
-        if (upper.contains("REMISE CHEQUE") || upper.contains("VIREMENT RECU") || upper.contains("VIR.RECU")) {
+        if (containsHint(upper, normalizedUpper, "REMISE CHEQUE")
+                || containsHint(upper, normalizedUpper, "VIREMENT RECU")
+                || containsHint(upper, normalizedUpper, "VIR.RECU")) {
             creditScore += 3;
         }
-        if (upper.contains("PAYROLL") || upper.contains("SALARY") || upper.contains("REFUND")) {
+        if (containsHint(upper, normalizedUpper, "PAYROLL")
+                || containsHint(upper, normalizedUpper, "SALARY")
+                || containsHint(upper, normalizedUpper, "REFUND")) {
             creditScore += 3;
+        }
+        if (VIR_RECU_PATTERN.matcher(upper).find()) {
+            creditScore += 4;
+        }
+        if (VIREMENT_VERS_CLIENT_PATTERN.matcher(upper).find()) {
+            debitScore += 5;
         }
 
         if (debitScore > creditScore) {
@@ -230,6 +249,29 @@ public class SmartNumericClassifier implements NumericClassifier {
             return AmountDirection.CREDIT;
         }
         return AmountDirection.UNKNOWN;
+    }
+
+    private boolean containsHint(String rawUpper, String normalizedRawUpper, String hint) {
+        if (rawUpper == null || hint == null || hint.isBlank()) {
+            return false;
+        }
+        if (rawUpper.contains(hint)) {
+            return true;
+        }
+        String normalizedHint = normalizeHintText(hint);
+        if (normalizedHint.isBlank()) {
+            return false;
+        }
+        return normalizedRawUpper.contains(normalizedHint);
+    }
+
+    private String normalizeHintText(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return value.replaceAll("[^A-Z0-9]+", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 
     private String sanitizeLineForAmountExtraction(String line) {

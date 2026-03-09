@@ -42,6 +42,12 @@ public class BankStatementProcessingService {
     private static final BigDecimal TTC_DIVISOR = new BigDecimal("1.1");
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final String COMMISSION_LABEL = "SOUS COMMISSION";
+    private static final Pattern VIR_RECU_LIBELLE_PATTERN = Pattern.compile(
+            "\\bVIR(?:EMENT)?\\s*[\\./-]?\\s*RECU\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern VIREMENT_VERS_CLIENT_LIBELLE_PATTERN = Pattern.compile(
+            "\\bVIREMENT\\s*(?:\\(\\s*S\\s*\\)|S)?\\s+VERS\\s+CLIENT\\s*(?:\\(\\s*S\\s*\\)|S)?\\b",
+            Pattern.CASE_INSENSITIVE);
 
     private final BankStatementProcessor bankStatementProcessor;
     private final OcrCleaningService cleaningService;
@@ -212,6 +218,7 @@ public class BankStatementProcessingService {
                     statement.getMonth(),
                     statement.getYear(),
                     bankType);
+            enforceDebitCreditFromLibelleHints(transactions);
             transactions = applyTtcCommissionSplitIfEnabled(statement, transactions);
 
             log.info("✅ {} transactions extraites", transactions.size());
@@ -379,6 +386,42 @@ public class BankStatementProcessingService {
             expanded.add(taxTx);
         }
         return expanded;
+    }
+
+    private void enforceDebitCreditFromLibelleHints(List<BankTransaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            return;
+        }
+        for (BankTransaction tx : transactions) {
+            if (tx == null) {
+                continue;
+            }
+            String libelle = tx.getLibelle();
+            BigDecimal debit = tx.getDebit() == null ? ZERO : tx.getDebit();
+            BigDecimal credit = tx.getCredit() == null ? ZERO : tx.getCredit();
+            if (debit.compareTo(ZERO) > 0
+                    && credit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && VIR_RECU_LIBELLE_PATTERN.matcher(libelle).find()) {
+                tx.setCredit(debit);
+                tx.setDebit(ZERO);
+                tx.setSens("CREDIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("CREDIT_FORCED_BY_LIBELLE_HINT");
+                }
+            }
+            if (credit.compareTo(ZERO) > 0
+                    && debit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && VIREMENT_VERS_CLIENT_LIBELLE_PATTERN.matcher(libelle).find()) {
+                tx.setDebit(credit);
+                tx.setCredit(ZERO);
+                tx.setSens("DEBIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("DEBIT_FORCED_BY_LIBELLE_HINT");
+                }
+            }
+        }
     }
 
     private boolean containsCommission(String libelle) {

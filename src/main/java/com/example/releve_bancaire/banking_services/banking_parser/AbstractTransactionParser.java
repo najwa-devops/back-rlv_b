@@ -23,6 +23,8 @@ public abstract class AbstractTransactionParser implements TransactionParser {
             Pattern.compile("(?<!\\d)(?:\\d{1,3}(?:[\\s\\.]\\d{3})+|\\d+)[,\\.]\\d{2}(?!\\d)");
     protected static final Pattern EXPLODED_AMOUNT_PATTERN =
             Pattern.compile("(?<!\\d)((?:\\d\\s+){1,}\\d)\\s*([,.])\\s*((?:\\d\\s+){1,}\\d)(?!\\d)");
+    protected static final Pattern VIR_RECU_PATTERN =
+            Pattern.compile("\\bVIR\\s*[\\./-]?\\s*RECU\\b");
     protected static final Pattern ALNUM_CODE_PREFIX_PATTERN =
             Pattern.compile("^\\s*(?:\\d\\s+)?(?=[0-9A-Z]{5,6}\\b)(?=[0-9A-Z]*\\d)(?=[0-9A-Z]*[A-Z])[0-9A-Z]{5,6}\\b\\s*",
                     Pattern.CASE_INSENSITIVE);
@@ -173,12 +175,24 @@ public abstract class AbstractTransactionParser implements TransactionParser {
         }
 
         BigDecimal single = values.get(0);
-        boolean isLikelyCredit = blockText.contains("SALAIRE") || blockText.contains("VIREMENT RECU")
-                || blockText.contains("VIR RECU") ||
-                blockText.contains("REMISE") || blockText.contains("VERSEMENT") || blockText.contains("INTERETS");
-        boolean isLikelyDebit = blockText.contains("RETRAIT") || blockText.contains("CHEQUE") ||
-                blockText.contains("PRELEVEMENT") || blockText.contains("FRAIS") ||
-                blockText.contains("COMMISSION") || blockText.contains("ACHAT") || blockText.contains("PAIEMENT");
+        String normalizedBlockText = normalizeHintText(blockText);
+        boolean isLikelyCredit = containsHint(blockText, normalizedBlockText, "SALAIRE")
+                || containsHint(blockText, normalizedBlockText, "VIREMENT RECU")
+                || containsHint(blockText, normalizedBlockText, "VIR RECU")
+                || containsHint(blockText, normalizedBlockText, "VIR.RECU")
+                || containsHint(blockText, normalizedBlockText, "REMISE")
+                || containsHint(blockText, normalizedBlockText, "VERSEMENT")
+                || containsHint(blockText, normalizedBlockText, "INTERETS");
+        boolean isLikelyDebit = containsHint(blockText, normalizedBlockText, "RETRAIT")
+                || containsHint(blockText, normalizedBlockText, "CHEQUE")
+                || containsHint(blockText, normalizedBlockText, "PRELEVEMENT")
+                || containsHint(blockText, normalizedBlockText, "FRAIS")
+                || containsHint(blockText, normalizedBlockText, "COMMISSION")
+                || containsHint(blockText, normalizedBlockText, "ACHAT")
+                || containsHint(blockText, normalizedBlockText, "PAIEMENT");
+        if (VIR_RECU_PATTERN.matcher(blockText).find()) {
+            isLikelyCredit = true;
+        }
 
         if (isLikelyCredit && !isLikelyDebit) {
             return new Amounts(BigDecimal.ZERO, single);
@@ -189,6 +203,29 @@ public abstract class AbstractTransactionParser implements TransactionParser {
         }
 
         return new Amounts(single, BigDecimal.ZERO);
+    }
+
+    private boolean containsHint(String raw, String normalizedRaw, String hint) {
+        if (raw == null || hint == null || hint.isBlank()) {
+            return false;
+        }
+        if (raw.contains(hint)) {
+            return true;
+        }
+        String normalizedHint = normalizeHintText(hint);
+        if (normalizedHint.isBlank()) {
+            return false;
+        }
+        return normalizedRaw.contains(normalizedHint);
+    }
+
+    private String normalizeHintText(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return value.replaceAll("[^A-Z0-9]+", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 
     protected String buildLibelle(List<String> block, TransactionFields fields) {
