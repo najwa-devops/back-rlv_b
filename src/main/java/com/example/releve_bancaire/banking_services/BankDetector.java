@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
 public class BankDetector {
 
     private static final int HEADER_LINES = 40;
+    private static final Pattern CODE_BANQUE_145_PATTERN = Pattern.compile("\\bCODE\\s+BANQUE\\b.{0,40}\\b145\\b",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     public BankDetection detect(String text) {
         if (text == null || text.isBlank()) {
@@ -22,6 +25,8 @@ public class BankDetector {
         String header = String.join(" ", lines);
         String normalized = normalize(header);
         String normalizedAll = normalize(text);
+        String compact = compactNormalize(header);
+        String compactAll = compactNormalize(text);
 
         if (containsAny(normalized, "UMNIA", "UMNIA BANK")
                 || containsAny(normalizedAll, "UMNIA", "UMNIA BANK")) {
@@ -92,9 +97,13 @@ public class BankDetector {
                 || containsAny(normalizedAll, "BARID BANK", "AL BARID")) {
             return new BankDetection(BankType.BARID_BANK, "AL BARID BANK");
         }
-        if (containsAny(normalized, "BANQUE POPULAIRE", "BCP")
-                || containsAny(normalizedAll, "BANQUE POPULAIRE", "BCP")) {
-            return new BankDetection(BankType.BCP, "BCP");
+        if (containsAny(normalized, "BANQUE POPULAIRE", "BANQUE CENTRALE POPULAIRE", "BCP")
+                || containsAny(normalizedAll, "BANQUE POPULAIRE", "BANQUE CENTRALE POPULAIRE", "BCP", "BANQE POPULAIRE")
+                || containsAny(compact, "BANQUEPOPULAIRE", "BANQUECENTRALEPOPULAIRE", "GROUPEBANQUEPOPULAIRE", "BCP")
+                || containsAny(compactAll, "BANQUEPOPULAIRE", "BANQUECENTRALEPOPULAIRE", "GROUPEBANQUEPOPULAIRE",
+                        "BANQEPOPULAIRE", "BCP")
+                || CODE_BANQUE_145_PATTERN.matcher(text).find()) {
+            return new BankDetection(BankType.BCP, "BANQUE POPULAIRE");
         }
 
         return new BankDetection(BankType.UNKNOWN, "");
@@ -129,6 +138,10 @@ public class BankDetector {
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
         normalized = normalized.replaceAll("\\p{M}", "");
         return normalized.toUpperCase();
+    }
+
+    private String compactNormalize(String input) {
+        return normalize(input).replaceAll("[^A-Z0-9]+", "");
     }
 
     public static class BankDetection {

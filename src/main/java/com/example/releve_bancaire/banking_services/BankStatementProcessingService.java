@@ -535,9 +535,10 @@ public class BankStatementProcessingService {
             log.debug("Solde clôture: {}", metadata.closingBalance);
         }
 
-        if (metadata.bankName != null) {
-            statement.setBankName(metadata.bankName);
-            log.debug("Banque: {}", metadata.bankName);
+        String resolvedBankName = resolveBankName(metadata, statement);
+        if (resolvedBankName != null) {
+            statement.setBankName(resolvedBankName);
+            log.debug("Banque: {}", resolvedBankName);
         }
 
         if (metadata.accountHolder != null) {
@@ -550,6 +551,31 @@ public class BankStatementProcessingService {
         statement.calculateTotalsFromTransactions();
         log.debug("Totaux calculés - Crédit: {}, Débit: {}",
                 statement.getTotalCredit(), statement.getTotalDebit());
+    }
+
+    private String resolveBankName(MetadataExtractorService.BankStatementMetadata metadata, BankStatement statement) {
+        if (metadata != null && metadata.bankName != null && !metadata.bankName.isBlank()) {
+            return metadata.bankName;
+        }
+        if (metadata != null && metadata.bankType != null && metadata.bankType != BankType.UNKNOWN) {
+            return switch (metadata.bankType) {
+                case BCP -> "BANQUE POPULAIRE";
+                case BMCE -> "BANK OF AFRICA (BMCE)";
+                case BARID_BANK -> "AL BARID BANK";
+                case ATTIJARIWAFA -> "ATTIJARIWAFA";
+                case BMCI -> "BMCI";
+                case CIH -> "CIH BANK";
+                case SOCIETE_GENERALE -> "SOCIETE GENERALE";
+                case CREDIT_DU_MAROC -> "CREDIT DU MAROC";
+                case CREDIT_AGRICOLE -> "CREDIT AGRICOLE";
+                case UNKNOWN -> null;
+            };
+        }
+        String rib = statement != null ? statement.getRib() : null;
+        if (rib != null && rib.startsWith("145")) {
+            return "BANQUE POPULAIRE";
+        }
+        return null;
     }
 
     private void purgeUploadedBinaryIfConfigured(BankStatement statement) {
