@@ -48,6 +48,19 @@ public class BankStatementProcessingService {
     private static final Pattern VIREMENT_VERS_CLIENT_LIBELLE_PATTERN = Pattern.compile(
             "\\bVIREMENT\\s*(?:\\(\\s*S\\s*\\)|S)?\\s+VERS\\s+CLIENT\\s*(?:\\(\\s*S\\s*\\)|S)?\\b",
             Pattern.CASE_INSENSITIVE);
+    // Règles métier Saham Bank / relevés marocains
+    private static final Pattern VENTE_PAR_CARTE_PATTERN = Pattern.compile(
+            "\\bVENTE\\s+PAR\\s+CARTE\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern RECEPTION_VIREMENT_PATTERN = Pattern.compile(
+            "\\bRECEPTION\\s+D.UN\\s+VIREMENT\\b|\\bRECEPTION\\s+VIREMENT\\b|\\bRECEPTION\\s+D.UN\\s+VIREMENT\\s+CONFRERE\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern EMISSION_VIREMENT_PATTERN = Pattern.compile(
+            "\\bEMISSION\\s+D.UN\\s+VIREMENT\\b|\\bEMISSION\\s+VIREMENT\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern TRANSFERT_CASH_PATTERN = Pattern.compile(
+            "\\bTRANSFERT\\s+CASH\\b",
+            Pattern.CASE_INSENSITIVE);
 
     private final BankStatementProcessor bankStatementProcessor;
     private final OcrCleaningService cleaningService;
@@ -410,6 +423,30 @@ public class BankStatementProcessingService {
                     tx.getFlags().add("CREDIT_FORCED_BY_LIBELLE_HINT");
                 }
             }
+            // VENTE PAR CARTE → toujours CRÉDIT (entrée d'argent par TPE)
+            if (debit.compareTo(ZERO) > 0
+                    && credit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && VENTE_PAR_CARTE_PATTERN.matcher(libelle).find()) {
+                tx.setCredit(debit);
+                tx.setDebit(ZERO);
+                tx.setSens("CREDIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("CREDIT_FORCED_VENTE_CARTE");
+                }
+            }
+            // RECEPTION D'UN VIREMENT → toujours CRÉDIT
+            if (debit.compareTo(ZERO) > 0
+                    && credit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && RECEPTION_VIREMENT_PATTERN.matcher(libelle).find()) {
+                tx.setCredit(debit);
+                tx.setDebit(ZERO);
+                tx.setSens("CREDIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("CREDIT_FORCED_RECEPTION_VIREMENT");
+                }
+            }
             if (credit.compareTo(ZERO) > 0
                     && debit.compareTo(ZERO) == 0
                     && libelle != null
@@ -419,6 +456,30 @@ public class BankStatementProcessingService {
                 tx.setSens("DEBIT");
                 if (tx.getFlags() != null) {
                     tx.getFlags().add("DEBIT_FORCED_BY_LIBELLE_HINT");
+                }
+            }
+            // EMISSION D'UN VIREMENT → toujours DÉBIT (sortie d'argent)
+            if (credit.compareTo(ZERO) > 0
+                    && debit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && EMISSION_VIREMENT_PATTERN.matcher(libelle).find()) {
+                tx.setDebit(credit);
+                tx.setCredit(ZERO);
+                tx.setSens("DEBIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("DEBIT_FORCED_EMISSION_VIREMENT");
+                }
+            }
+            // TRANSFERT CASH → toujours DÉBIT
+            if (credit.compareTo(ZERO) > 0
+                    && debit.compareTo(ZERO) == 0
+                    && libelle != null
+                    && TRANSFERT_CASH_PATTERN.matcher(libelle).find()) {
+                tx.setDebit(credit);
+                tx.setCredit(ZERO);
+                tx.setSens("DEBIT");
+                if (tx.getFlags() != null) {
+                    tx.getFlags().add("DEBIT_FORCED_TRANSFERT_CASH");
                 }
             }
         }
@@ -568,6 +629,7 @@ public class BankStatementProcessingService {
                 case SOCIETE_GENERALE -> "SOCIETE GENERALE";
                 case CREDIT_DU_MAROC -> "CREDIT DU MAROC";
                 case CREDIT_AGRICOLE -> "CREDIT AGRICOLE";
+                case SAHAM_BANK -> "SAHAM BANK";
                 case UNKNOWN -> null;
             };
         }

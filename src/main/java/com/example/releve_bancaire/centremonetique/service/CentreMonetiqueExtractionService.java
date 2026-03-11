@@ -32,6 +32,29 @@ public class CentreMonetiqueExtractionService {
             "(?<!\\d)(?:\\d{1,3}(?:[\\s.,]\\d{3})+|\\d+)(?:[.,]\\d{2})(?!\\d)");
     private static final Pattern INTEGER_TOKEN_PATTERN = Pattern.compile("\\b\\d{4,10}\\b");
 
+    // Extraction du RIB depuis l'en-tête du document centre monétique.
+    // CMI  : "RIB COMPTE DE DOMICILIATION : 022450000172000506932853"
+    // Barid: "NCompte: 022450000172000506932853"
+    private static final Pattern CMI_RIB_PATTERN = Pattern.compile(
+            "\\bRIB(?:\\s+COMPTE(?:\\s+DE\\s+DOMICILIATION)?)?\\s*[:\\-]?\\s*([0-9]{20,30})\\b",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern BARID_RIB_NCOMPTE_PATTERN = Pattern.compile(
+            "\\bN\\s*COMPTE\\s*[:\\-]?\\s*([0-9]{20,30})\\b",
+            Pattern.CASE_INSENSITIVE);
+    /** Fallback : toute séquence de 24 chiffres isolés dans le texte. */
+    private static final Pattern STANDALONE_24_DIGITS_PATTERN = Pattern.compile(
+            "(?<!\\d)([0-9]{24})(?!\\d)");
+
+    private static final Pattern CARD_TYPE_PATTERN = Pattern.compile("(?:^|\\s)([VM])(?:\\s|$)");
+
+    /**
+     * Extrait le numéro TPE depuis la ligne d'en-tête d'un bloc REMISE CMI.
+     * Ex: "ACHAT REMISE TPE N° :000285 DU :03/02/26 (DH)" → "000285"
+     */
+    private static final Pattern CMI_TPE_NUMBER_PATTERN = Pattern.compile(
+            "N[^\\s0-9A-Z]{0,3}\\s*:?\\s*([0-9A-Z]{4,10})\\b",
+            Pattern.CASE_INSENSITIVE);
+
     private static final Pattern BARID_REGLEMENT_PATTERN = Pattern.compile("^\\s*REGLEMENT\\s*[:\\-]?\\s*([A-Z0-9]+)\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern BARID_DATE_REGLEMENT_PATTERN = Pattern.compile("\\bDATE\\s+REGLEMENT\\s*[:\\-]?\\s*(\\d{1,2}[\\/\\-.]\\d{1,2}[\\/\\-.]\\d{2,4})\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern BARID_ACCOUNT_PATTERN = Pattern.compile("\\bN\\s*COMPTE\\s*[:\\-]?\\s*([0-9]{10,30})\\b", Pattern.CASE_INSENSITIVE);
@@ -68,20 +91,28 @@ public class CentreMonetiqueExtractionService {
                     text,
                     List.of(),
                     new SummaryTotals(null, null, null, null),
-                    CentreMonetiqueStructureType.CMI.name());
+                    CentreMonetiqueStructureType.CMI.name(),
+                    null);
         }
 
+        String extractedRib = extractRibFromText(text);
         CentreMonetiqueStructureType effectiveStructure = resolveStructure(text, requestedStructure);
+        ExtractionPayload base;
         if (effectiveStructure == CentreMonetiqueStructureType.BARID_BANK) {
-            return extractBarid(text, statementYear);
+            base = extractBarid(text, statementYear);
+        } else {
+            base = extractCmi(text, statementYear);
         }
-        return extractCmi(text, statementYear);
+        // On enrichit le payload avec le RIB extrait (prioritaire sur l'extraction interne si différent).
+        String finalRib = base.extractedRib() != null ? base.extractedRib() : extractedRib;
+        return new ExtractionPayload(base.rawOcrText(), base.rows(), base.summaryTotals(), base.detectedStructure(), finalRib);
     }
 
     private ExtractionPayload extractCmi(String text, Integer statementYear) {
         List<CentreMonetiqueExtractionRow> rows = new ArrayList<>();
         String[] lines = text.split("\\n");
         boolean inRemiseSection = false;
+        String currentTpe = null;
         BigDecimal blockTotalRemise = null;
         BigDecimal blockTotalCommissions = null;
         BigDecimal blockTotalTva = null;
@@ -149,6 +180,14 @@ public class CentreMonetiqueExtractionService {
                     }
                 }
                 inRemiseSection = true;
+                // Extraire le numéro TPE du terminal depuis la ligne d'en-tête
+                Matcher tpeMatcher = CMI_TPE_NUMBER_PATTERN.matcher(line);
+                currentTpe = tpeMatcher.find() ? tpeMatcher.group(1) : null;
+                // Stocker une ligne d'en-tête REMISE ACHAT avec le numéro TPE
+                if (currentTpe != null && !currentTpe.isBlank()) {
+                    rows.add(new CentreMonetiqueExtractionRow(
+                            "REMISE ACHAT", "", currentTpe, "", "", "", ""));
+                }
                 blockTotalRemise = null;
                 blockTotalCommissions = null;
                 blockTotalTva = null;
@@ -167,6 +206,17 @@ public class CentreMonetiqueExtractionService {
 
             CentreMonetiqueExtractionRow transaction = parseCmiTransactionLine(line, statementYear);
             if (transaction != null) {
+                // Tagger la section avec le numéro TPE pour le rapprochement
+                if (currentTpe != null && !currentTpe.isBlank()) {
+                    transaction = new CentreMonetiqueExtractionRow(
+                            "REMISE " + currentTpe,
+                            transaction.getDate(),
+                            transaction.getReference(),
+                            transaction.getMontant(),
+                            transaction.getDebit(),
+                            transaction.getCredit(),
+                            transaction.getDc());
+                }
                 rows.add(transaction);
                 BigDecimal txAmount = parseAmount(transaction.getMontant());
                 if (txAmount != null) {
@@ -542,6 +592,13 @@ public class CentreMonetiqueExtractionService {
             return null;
         }
 
+        // Extract card type V or M after the STAN reference
+        String afterStan = tail;
+        int stanIdx = reference != null ? tail.indexOf(reference) : -1;
+        if (stanIdx >= 0) afterStan = tail.substring(stanIdx + reference.length());
+        Matcher cardTypeMatcher = CARD_TYPE_PATTERN.matcher(afterStan);
+        String cardType = cardTypeMatcher.find() ? cardTypeMatcher.group(1) : "";
+
         return new CentreMonetiqueExtractionRow(
                 "Remise",
                 time != null && !time.isBlank() ? (formattedDate + " " + time) : formattedDate,
@@ -549,7 +606,7 @@ public class CentreMonetiqueExtractionService {
                 formatAmount(montant),
                 "",
                 "",
-                "");
+                cardType);
     }
 
     private String extractReference(String lineTail) {
@@ -825,10 +882,69 @@ public class CentreMonetiqueExtractionService {
                 .toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * Extrait le RIB (24 chiffres) depuis le texte OCR du centre monétique.
+     * Priorité :
+     *   1) CMI compact   : "RIB COMPTE DE DOMICILIATION : 022450000172000506932853"
+     *   2) Saham/split   : "RIB COMPTE DE DOMICILIATION :\n022 450 0001720005069328 53"
+     *   3) Barid NCompte : "NCompte: 022450000172000506932853"
+     *   4) Fallback      : première séquence de 24 chiffres isolés
+     */
+    public String extractRibFromText(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        // 1) CMI compact : RIB sur la même ligne que le label
+        Matcher m1 = CMI_RIB_PATTERN.matcher(text);
+        if (m1.find()) {
+            return m1.group(1);
+        }
+        // 2) Saham Bank / CMI multi-lignes : le RIB est réparti sur la ligne suivante
+        //    sous forme de groupes séparés par des espaces : "022  450  0001720005069328  53"
+        String[] lines = text.split("\\n");
+        for (int i = 0; i < lines.length; i++) {
+            String upper = normalizeUpper(lines[i]);
+            if (upper.contains("RIB COMPTE DE DOMICILIATION") || upper.contains("RIB COMPTE")) {
+                // Chercher 24 chiffres sur la ligne courante et les 2 lignes suivantes
+                for (int j = i; j <= Math.min(i + 2, lines.length - 1); j++) {
+                    String digits = lines[j].replaceAll("[^0-9]", "");
+                    if (digits.length() == 24) {
+                        return digits;
+                    }
+                }
+                // Tenter la concaténation ligne courante + ligne suivante
+                if (i + 1 < lines.length) {
+                    String combined = (lines[i] + " " + lines[i + 1]).replaceAll("[^0-9]", "");
+                    if (combined.length() == 24) {
+                        return combined;
+                    }
+                }
+            }
+        }
+        // 3) Barid Bank : "NCompte: 022450000172000506932853"
+        Matcher m2 = BARID_RIB_NCOMPTE_PATTERN.matcher(text);
+        if (m2.find()) {
+            return m2.group(1);
+        }
+        // 4) Fallback : première séquence de 24 chiffres isolés
+        Matcher m3 = STANDALONE_24_DIGITS_PATTERN.matcher(text);
+        if (m3.find()) {
+            return m3.group(1);
+        }
+        return null;
+    }
+
     public record ExtractionPayload(String rawOcrText,
                                     List<CentreMonetiqueExtractionRow> rows,
                                     SummaryTotals summaryTotals,
-                                    String detectedStructure) {
+                                    String detectedStructure,
+                                    String extractedRib) {
+
+        /** Constructeur de compatibilité sans RIB. */
+        public ExtractionPayload(String rawOcrText, List<CentreMonetiqueExtractionRow> rows,
+                                 SummaryTotals summaryTotals, String detectedStructure) {
+            this(rawOcrText, rows, summaryTotals, detectedStructure, null);
+        }
     }
 
     private record BlockTotals(BigDecimal totalRemise,

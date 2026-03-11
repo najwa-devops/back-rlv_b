@@ -19,6 +19,12 @@ import java.util.regex.Pattern;
 @Slf4j
 public class TransactionExtractorService {
     private static final Pattern YEAR_4_PATTERN = Pattern.compile("(?<!\\d)(20\\d{2})(?!\\d)");
+    private static final Pattern AMOUNT_LAYOUT_PATTERN = Pattern.compile(
+            "(?<!\\d)(?:\\d{1,3}(?:[\\s\\.]\\d{3})+|\\d+)[,.]\\d{2}(?!\\d)");
+    /** Nombre minimum de lignes avec espace de colonisation significatif pour conclure layout deux-colonnes. */
+    private static final int TWO_COLUMN_DETECTION_THRESHOLD = 3;
+    /** Nombre minimum de caractères d'espace après un montant pour considérer qu'une colonne Crédit est vide. */
+    private static final int TRAILING_COL_SPACE_MIN = 8;
     private static final Pattern START_LINE_DATE_WITH_YEAR_PATTERN = Pattern.compile(
             "^\\s*(?:\\d+\\s+)?(?:[0-9A-Z]{4,10}\\s+)?"
                     + "(\\d{1,2})\\s*[\\/\\-.]\\s*(\\d{1,2})\\s*(?:[\\/\\-.]|\\s+)\\s*(\\d{4})\\b",
@@ -80,9 +86,12 @@ public class TransactionExtractorService {
         Integer resolvedYear = resolveStatementYear(statementYear, textWithoutHeaderFooter, cleanedText);
         Integer resolvedMonth = resolveStatementMonth(statementMonth, textWithoutHeaderFooter, cleanedText);
 
+        boolean twoColumnLayout = detectTwoColumnAmountLayout(textWithoutHeaderFooter);
+        log.info("Layout détecté pour {} : {}", bankType, twoColumnLayout ? "DEUX_COLONNES" : "UNE_COLONNE");
+
         List<BankTransaction> extracted = universalEngine.extract(
                 textWithoutHeaderFooter,
-                new TransactionExtractionContext(bankType, resolvedMonth, resolvedYear));
+                new TransactionExtractionContext(bankType, resolvedMonth, resolvedYear, twoColumnLayout));
 
         if (!extracted.isEmpty()) {
             return extracted;
@@ -220,6 +229,38 @@ public class TransactionExtractorService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /**
+     * Détecte si le texte OCR a un layout à deux colonnes (Débit | Crédit séparées).
+     *
+     * Principe : dans un layout deux-colonnes, les montants en colonne Débit sont suivis
+     * de nombreux espaces (la colonne Crédit est vide). Si l'OCR préserve ces espaces,
+     * on trouve des lignes où un montant est suivi de 8+ caractères blancs.
+     * Dans un layout une-colonne (Attijariwafa, BMCE…), les montants sont toujours
+     * en fin de ligne sans espace de rembourrage.
+     */
+    private boolean detectTwoColumnAmountLayout(String text) {
+        if (text == null || text.isBlank()) {
+            return false;
+        }
+        int columnarLines = 0;
+        for (String line : text.split("\n")) {
+            Matcher m = AMOUNT_LAYOUT_PATTERN.matcher(line);
+            while (m.find()) {
+                if (m.end() < line.length()) {
+                    String tail = line.substring(m.end());
+                    if (tail.isBlank() && tail.length() >= TRAILING_COL_SPACE_MIN) {
+                        columnarLines++;
+                        break; // une seule occurrence suffisante par ligne
+                    }
+                }
+            }
+            if (columnarLines >= TWO_COLUMN_DETECTION_THRESHOLD) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private BankType mapManualType(String manualBankType) {

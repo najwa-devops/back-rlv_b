@@ -58,7 +58,7 @@ public class BankDetector {
         }
         if (containsAny(normalized, "SAHAM", "SAHAM BANK")
                 || containsAny(normalizedAll, "SAHAM", "SAHAM BANK")) {
-            return new BankDetection(BankType.SOCIETE_GENERALE, "SAHAM BANK");
+            return new BankDetection(BankType.SAHAM_BANK, "SAHAM BANK");
         }
         if (containsAny(normalized, "DAR AL AMANE", "DAR AL-AMANE")
                 || containsAny(normalizedAll, "DAR AL AMANE", "DAR AL-AMANE")) {

@@ -13,6 +13,7 @@ public class CentreMonetiqueBatchDetailDTO {
     private Long id;
     private String filename;
     private String originalName;
+    private String rib;
     private String status;
     private String structure;
     private String statementPeriod;

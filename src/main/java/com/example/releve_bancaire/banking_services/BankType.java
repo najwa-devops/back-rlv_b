@@ -10,5 +10,6 @@ public enum BankType {
     BARID_BANK,
     BMCE,
     ATTIJARIWAFA,
+    SAHAM_BANK,
     UNKNOWN
 }

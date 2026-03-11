@@ -80,6 +80,10 @@ public class CentreMonetiqueBatch {
     @Column(length = 30)
     private String statementPeriod;
 
+    /** RIB du compte bancaire associé (24 chiffres) — clé de rapprochement avec les relevés bancaires. */
+    @Column(length = 30)
+    private String rib;
+
     @Column(nullable = false, length = 30)
     private String structure = "AUTO";
 

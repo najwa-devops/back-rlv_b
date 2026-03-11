@@ -4,6 +4,7 @@ import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchDetai
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchSummaryDTO;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueExtractionRow;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueUploadResponseDTO;
+import com.example.releve_bancaire.centremonetique.dto.RapprochementResultDTO;
 import com.example.releve_bancaire.centremonetique.service.CentreMonetiqueStructureType;
 import com.example.releve_bancaire.centremonetique.service.CentreMonetiqueWorkflowService;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,8 @@ public class CentreMonetiqueController {
     public ResponseEntity<?> uploadAndExtract(
             @RequestParam("file") MultipartFile file,
             @RequestParam(name = "year", required = false) Integer year,
-            @RequestParam(name = "structure", required = false) String structure) {
+            @RequestParam(name = "structure", required = false) String structure,
+            @RequestParam(name = "rib", required = false) String rib) {
 
         try {
             if (file == null || file.isEmpty()) {
@@ -60,7 +62,7 @@ public class CentreMonetiqueController {
             }
 
             CentreMonetiqueBatchDetailDTO detail = workflowService.uploadAndExtract(
-                    file, year, CentreMonetiqueStructureType.fromNullable(structure));
+                    file, year, CentreMonetiqueStructureType.fromNullable(structure), rib);
             return ResponseEntity.status(HttpStatus.CREATED).body(new CentreMonetiqueUploadResponseDTO(
                     "Extraction terminee",
                     detail,
@@ -70,6 +72,26 @@ public class CentreMonetiqueController {
             return ResponseEntity.internalServerError().body(Map.of(
                     "error", e.getMessage() != null ? e.getMessage() : "Erreur interne"));
         }
+    }
+
+    @PutMapping("/{id}/rib")
+    public ResponseEntity<?> updateRib(@PathVariable("id") Long id,
+                                       @RequestBody Map<String, String> body) {
+        String rib = body != null ? body.get("rib") : null;
+        Optional<CentreMonetiqueBatchDetailDTO> detail = workflowService.updateRib(id, rib);
+        if (detail.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Introuvable"));
+        }
+        return ResponseEntity.ok(detail.get());
+    }
+
+    @GetMapping("/{id}/rapprochement")
+    public ResponseEntity<?> rapprochement(@PathVariable("id") Long id) {
+        Optional<RapprochementResultDTO> result = workflowService.rapprochement(id);
+        if (result.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Introuvable"));
+        }
+        return ResponseEntity.ok(result.get());
     }
 
     @GetMapping

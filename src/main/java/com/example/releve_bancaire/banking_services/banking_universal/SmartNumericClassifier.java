@@ -25,10 +25,16 @@ public class SmartNumericClassifier implements NumericClassifier {
     private static final int MIN_COLUMN_GAP = 10;
     private static final List<String> STRONG_DEBIT_HINTS = List.of(
             "OPERATION AU DEBIT", "PRELEVEMENT", "PRELEVEMENT SEPA", "RETRAIT", "PAIEMENT", "ACHAT", "CHEQUE",
-            "FRAIS", "COMMISSION", "AGIOS", "COTISATION", "VIREMENT EMIS", "VIR.EMIS", "DIRECT DEBIT", "CASH OUT");
+            "FRAIS", "COMMISSION", "AGIOS", "COTISATION", "VIREMENT EMIS", "VIR.EMIS", "DIRECT DEBIT", "CASH OUT",
+            "EMISSION D'UN VIREMENT", "EMISSION VIREMENT", "TRANSFERT CASH", "REGLEMENT D'ECHEANCE");
+    // Pattern pour supprimer les montants référencés "DE MAD X" du libellé (ex: FRAIS DE VIR No X DE MAD 263902,00 1072,50)
+    // afin que seul le montant transactionnel réel (le dernier) soit extrait.
+    private static final Pattern DE_MAD_REF_PATTERN = Pattern.compile(
+            "(?i)\\bDE\\s+MAD\\s+((?:\\d{1,3}(?:[\\s\\.]\\d{3})*|\\d+)[,.]\\d{2})(?=\\s+(?:\\d{1,3}(?:[\\s\\.]\\d{3})*|\\d+)[,.]\\d{2})");
     private static final List<String> STRONG_CREDIT_HINTS = List.of(
             "VIREMENT RECU", "VIR RECU", "VIR.RECU", "CREDIT VIREMENT", "VERSEMENT", "REMISE CHEQUE",
-            "REMISE", "ENCAISSEMENT", "REMBOURSEMENT", "SALAIRE", "PAYROLL", "SALARY", "REFUND", "CASH IN");
+            "REMISE", "ENCAISSEMENT", "REMBOURSEMENT", "SALAIRE", "PAYROLL", "SALARY", "REFUND", "CASH IN",
+            "VENTE PAR CARTE", "VENTE CARTE", "RECEPTION D'UN VIREMENT", "RECEPTION VIREMENT DE");
     private final OcrCleaningService cleaningService;
     private final BankLayoutProfileRegistry profileRegistry;
 
@@ -93,7 +99,18 @@ public class SmartNumericClassifier implements NumericClassifier {
             } else if (direction == AmountDirection.DEBIT || (likelyDebit && likelyCredit)) {
                 debit = single;
             } else {
-                debit = single;
+                // Direction INCONNUE : pour Saham Bank (layout deux-colonnes Débit|Crédit), utiliser
+                // la position OCR pour distinguer la colonne.
+                // Pour toutes les autres banques (layout une-colonne) → défaut DÉBIT.
+                boolean isSahamTwoColumn = context.bankType() == com.example.releve_bancaire.banking_services.BankType.SAHAM_BANK
+                        || context.twoColumnAmountLayout();
+                if (isSahamTwoColumn && core.get(0).atEndOfLine()) {
+                    credit = single;
+                    flags.add("CREDIT_BY_COLUMN_POSITION");
+                } else {
+                    debit = single;
+                    flags.add("DEBIT_BY_DEFAULT_UNKNOWN");
+                }
             }
             flags.add("SINGLE_AMOUNT");
         }
@@ -116,10 +133,15 @@ public class SmartNumericClassifier implements NumericClassifier {
             Matcher matcher = DECIMAL_PATTERN.matcher(line);
             while (matcher.find()) {
                 String raw = matcher.group();
+                // Colonne Crédit (fin réelle de ligne) : peu ou pas de contenu après le montant (≤3 chars).
+                // Colonne Débit (colonne Crédit vide) : montant suivi de nombreux espaces (≥8 chars blancs).
+                // Cette distinction n'est utilisée que si twoColumnAmountLayout est vrai dans le contexte.
+                String tail = matcher.end() < line.length() ? line.substring(matcher.end()) : "";
+                boolean atEndOfLine = tail.length() <= 3;
                 if (looksLikeDateAmountMerge(line, matcher.start(), raw)) {
                     BigDecimal fixed = parseAmountFromMergedDateAmount(raw);
                     if (fixed.compareTo(BigDecimal.ZERO) > 0) {
-                        values.add(new Candidate(i, matcher.start(), raw, fixed));
+                        values.add(new Candidate(i, matcher.start(), raw, fixed, atEndOfLine));
                     }
                     continue;
                 }
@@ -127,7 +149,7 @@ public class SmartNumericClassifier implements NumericClassifier {
                 if (value.compareTo(BigDecimal.ZERO) <= 0) {
                     continue;
                 }
-                values.add(new Candidate(i, matcher.start(), raw, value));
+                values.add(new Candidate(i, matcher.start(), raw, value, atEndOfLine));
             }
         }
         return values;
@@ -278,8 +300,12 @@ public class SmartNumericClassifier implements NumericClassifier {
         if (line == null) {
             return "";
         }
+        // Cas "FRAIS DE VIREMENT No X DE MAD 263902,00 1072,50": retire le montant référencé
+        // "DE MAD 263902,00" pour ne garder que le vrai montant transactionnel (1072,50).
+        // Le lookahead garantit qu'on ne retire que si un 2e montant suit (sinon l'unique montant est le frais).
+        String sanitized = DE_MAD_REF_PATTERN.matcher(line).replaceAll("DE MAD ");
         // Evite la fusion "CHEQUE 458 150,00" => 458150,00
-        String sanitized = line.replaceAll(
+        sanitized = sanitized.replaceAll(
                 "(?i)\\bCHEQUE\\s+\\d{1,8}\\s+(?=\\d{1,3}(?:[\\s\\.]\\d{3})*[,.]\\d{2}\\b)",
                 "CHEQUE ");
         // Corrige des montants OCR deformes: "49.,44" -> "49,44"
@@ -430,7 +456,11 @@ public class SmartNumericClassifier implements NumericClassifier {
         }
     }
 
-    private record Candidate(int lineIndex, int start, String raw, BigDecimal value) {
+    /**
+     * @param atEndOfLine true si le montant est en fin de ligne (colonne Crédit du relevé bancaire),
+     *                    false si suivi d'espaces/contenu (colonne Débit, crédit vide).
+     */
+    private record Candidate(int lineIndex, int start, String raw, BigDecimal value, boolean atEndOfLine) {
     }
 
     private enum AmountDirection {

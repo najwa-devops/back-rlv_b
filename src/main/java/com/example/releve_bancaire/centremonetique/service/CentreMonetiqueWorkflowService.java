@@ -1,8 +1,11 @@
 package com.example.releve_bancaire.centremonetique.service;
 
+import com.example.releve_bancaire.banking_entity.BankTransaction;
+import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchDetailDTO;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchSummaryDTO;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueExtractionRow;
+import com.example.releve_bancaire.centremonetique.dto.RapprochementResultDTO;
 import com.example.releve_bancaire.centremonetique.entity.CentreMonetiqueBatch;
 import com.example.releve_bancaire.centremonetique.entity.CentreMonetiqueTransaction;
 import com.example.releve_bancaire.centremonetique.repository.CentreMonetiqueBatchRepository;
@@ -19,11 +22,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,14 +38,21 @@ public class CentreMonetiqueWorkflowService {
 
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    /** Extrait le numéro TPE depuis un libellé bancaire "VENTE PAR CARTE  000285". */
+    private static final Pattern BANK_TPE_PATTERN = Pattern.compile(
+            "VENTE\\s+PAR\\s+CARTE\\s+([A-Z0-9]{4,10})\\b",
+            Pattern.CASE_INSENSITIVE);
+
     private final CentreMonetiqueBatchRepository batchRepository;
     private final CentreMonetiqueTransactionRepository transactionRepository;
     private final CentreMonetiqueExtractionService extractionService;
+    private final BankTransactionRepository bankTransactionRepository;
 
     @Transactional
     public CentreMonetiqueBatchDetailDTO uploadAndExtract(MultipartFile file,
                                                           Integer year,
-                                                          CentreMonetiqueStructureType structureType) throws Exception {
+                                                          CentreMonetiqueStructureType structureType,
+                                                          String rib) throws Exception {
         CentreMonetiqueBatch batch = new CentreMonetiqueBatch();
         String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "document";
         String safeOriginalName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
@@ -50,6 +64,9 @@ public class CentreMonetiqueWorkflowService {
         batch.setFileData(file.getBytes());
         batch.setStatus("PROCESSING");
         batch.setStructure((structureType != null ? structureType : CentreMonetiqueStructureType.AUTO).name());
+        if (rib != null && !rib.isBlank()) {
+            batch.setRib(rib.trim());
+        }
         batch = batchRepository.save(batch);
 
         try {
@@ -63,6 +80,9 @@ public class CentreMonetiqueWorkflowService {
             batch.setStructure(payload.detectedStructure() != null && !payload.detectedStructure().isBlank()
                     ? payload.detectedStructure()
                     : CentreMonetiqueStructureType.AUTO.name());
+            if ((batch.getRib() == null || batch.getRib().isBlank()) && payload.extractedRib() != null && !payload.extractedRib().isBlank()) {
+                batch.setRib(payload.extractedRib());
+            }
             persistRows(batch, rows, payload.summaryTotals());
             batch.setStatus("PROCESSED");
             batch = batchRepository.save(batch);
@@ -91,6 +111,20 @@ public class CentreMonetiqueWorkflowService {
                 .limit(safeLimit)
                 .map(this::toSummaryDTO)
                 .toList();
+    }
+
+    /** Met à jour uniquement le RIB d'un batch existant. */
+    @Transactional
+    public Optional<CentreMonetiqueBatchDetailDTO> updateRib(Long id, String rib) {
+        Optional<CentreMonetiqueBatch> optional = batchRepository.findById(id);
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+        CentreMonetiqueBatch batch = optional.get();
+        batch.setRib(rib != null && !rib.isBlank() ? rib.trim() : null);
+        CentreMonetiqueBatch saved = batchRepository.save(batch);
+        List<CentreMonetiqueExtractionRow> rows = toRows(transactionRepository.findByBatchIdOrderByRowIndexAsc(saved.getId()));
+        return Optional.of(toDetailDTO(saved, rows, false));
     }
 
     @Transactional
@@ -126,6 +160,9 @@ public class CentreMonetiqueWorkflowService {
         batch.setStructure(payload.detectedStructure() != null && !payload.detectedStructure().isBlank()
                 ? payload.detectedStructure()
                 : CentreMonetiqueStructureType.AUTO.name());
+        if ((batch.getRib() == null || batch.getRib().isBlank()) && payload.extractedRib() != null && !payload.extractedRib().isBlank()) {
+            batch.setRib(payload.extractedRib());
+        }
         persistRows(batch, rows, payload.summaryTotals());
 
         batch.setStatus("PROCESSED");
@@ -146,6 +183,245 @@ public class CentreMonetiqueWorkflowService {
         batch.setStatus("PROCESSED");
         CentreMonetiqueBatch saved = batchRepository.save(batch);
         return Optional.of(toDetailDTO(saved, safeRows, true));
+    }
+
+    /**
+     * Rapprochement CMI : liaison par numéro TPE.
+     * Chaque bloc "ACHAT REMISE TPE N° :000285" dans le CM correspond à
+     * "VENTE PAR CARTE  000285" dans le relevé bancaire.
+     * Le montant CM à comparer est le SOLDE NET REMISE du bloc.
+     * Fallback sur correspondance par date si les données ne contiennent pas de lignes REMISE ACHAT.
+     */
+    @Transactional(readOnly = true)
+    public Optional<RapprochementResultDTO> rapprochement(Long batchId) {
+        Optional<CentreMonetiqueBatch> optional = batchRepository.findById(batchId);
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+        CentreMonetiqueBatch batch = optional.get();
+        String rib = batch.getRib();
+        List<CentreMonetiqueTransaction> cmTxs = transactionRepository.findByBatchIdOrderByRowIndexAsc(batchId);
+
+        if (cmTxs.isEmpty()) {
+            return Optional.of(new RapprochementResultDTO(batchId, rib, 0, 0, List.of()));
+        }
+
+        // Détecter si les données sont au nouveau format (avec lignes REMISE ACHAT contenant le TPE).
+        boolean hasRemiseAchat = cmTxs.stream()
+                .anyMatch(tx -> "REMISE ACHAT".equalsIgnoreCase(nvl(tx.getSection()).trim()));
+
+        if (hasRemiseAchat) {
+            return buildTpeBasedRapprochement(batchId, rib, cmTxs);
+        } else {
+            return buildDateBasedRapprochement(batchId, rib, cmTxs);
+        }
+    }
+
+    /**
+     * Rapprochement CMI par numéro TPE (nouveau format).
+     * Groupe les transactions par bloc REMISE ACHAT, lie au relevé bancaire via "VENTE PAR CARTE {tpe}".
+     */
+    private Optional<RapprochementResultDTO> buildTpeBasedRapprochement(
+            Long batchId, String rib, List<CentreMonetiqueTransaction> cmTxs) {
+
+        // Charger les transactions bancaires "VENTE PAR CARTE" pour ce RIB.
+        Map<String, BankTransaction> bankByTpe = new LinkedHashMap<>();
+        if (rib != null && !rib.isBlank()) {
+            List<BankTransaction> bankTxs = bankTransactionRepository.findByRibAndLibelleVenteParCarte(rib);
+            for (BankTransaction bt : bankTxs) {
+                String tpe = extractTpeFromBankLibelle(nvl(bt.getLibelle()));
+                if (tpe != null && !tpe.isBlank()) {
+                    bankByTpe.putIfAbsent(tpe, bt);
+                }
+            }
+        }
+
+        // Parcourir les lignes CM en machine d'état : bloc = REMISE ACHAT → transactions → SOLDE NET REMISE.
+        List<RapprochementResultDTO.RapprochementMatchDTO> matches = new ArrayList<>();
+        int matchedCount = 0;
+
+        String currentTpe = null;
+        String currentHeaderDate = null;
+        List<CentreMonetiqueTransaction> currentBlockTxs = new ArrayList<>();
+        BigDecimal currentSoldeNet = null;
+
+        for (CentreMonetiqueTransaction tx : cmTxs) {
+            String section = nvl(tx.getSection()).trim().toUpperCase(Locale.ROOT);
+
+            if (section.equals("REMISE ACHAT")) {
+                // Fermer le bloc précédent
+                if (currentTpe != null) {
+                    matchedCount += flushTpeBlock(currentTpe, currentHeaderDate, currentBlockTxs,
+                            currentSoldeNet, bankByTpe, matches);
+                }
+                currentTpe = nvl(tx.getReference()).trim();
+                currentHeaderDate = nvl(tx.getDate()).trim();
+                currentBlockTxs = new ArrayList<>();
+                currentSoldeNet = null;
+            } else if (section.startsWith("REMISE ") && !section.equals("REMISE ACHAT")) {
+                currentBlockTxs.add(tx);
+            } else if (section.equals("SOLDE NET REMISE")) {
+                currentSoldeNet = tx.getCredit();
+            }
+        }
+        // Fermer le dernier bloc
+        if (currentTpe != null) {
+            matchedCount += flushTpeBlock(currentTpe, currentHeaderDate, currentBlockTxs,
+                    currentSoldeNet, bankByTpe, matches);
+        }
+
+        return Optional.of(new RapprochementResultDTO(batchId, rib, cmTxs.size(), matchedCount, matches));
+    }
+
+    /**
+     * Construit les lignes de correspondance pour un bloc CMI (un TPE terminal).
+     * Retourne le nombre de transactions CM ajoutées comme appariées.
+     */
+    private int flushTpeBlock(String tpe,
+                               String headerDate,
+                               List<CentreMonetiqueTransaction> blockTxs,
+                               BigDecimal soldeNet,
+                               Map<String, BankTransaction> bankByTpe,
+                               List<RapprochementResultDTO.RapprochementMatchDTO> matches) {
+        if (blockTxs.isEmpty()) {
+            return 0;
+        }
+
+        int count = blockTxs.size();
+        // Référence du groupe : TPE terminal
+        String cmRef = "TPE N° " + tpe;
+        // Montant CM = SOLDE NET REMISE du bloc (ce qui arrive sur le compte bancaire)
+        String cmMontant = toAmount(soldeNet);
+
+        // Liaison bancaire par TPE
+        BankTransaction bankTx = bankByTpe.get(tpe);
+        String bankStatementName = "";
+        String bankMontant = "";
+        String bankLibelle = "";
+        if (bankTx != null) {
+            bankStatementName = bankTx.getStatement() != null
+                    ? nvl(bankTx.getStatement().getOriginalName()) : "";
+            bankMontant = toAmount(bankTx.getCredit());
+            bankLibelle = nvl(bankTx.getLibelle());
+        }
+
+        // Date : depuis l'en-tête si disponible, sinon date de la première transaction
+        String date = (headerDate != null && !headerDate.isBlank())
+                ? headerDate
+                : nvl(blockTxs.get(0).getDate());
+
+        for (CentreMonetiqueTransaction tx : blockTxs) {
+            matches.add(new RapprochementResultDTO.RapprochementMatchDTO(
+                    date,
+                    cmRef,
+                    cmMontant,
+                    nvl(tx.getReference()),
+                    nvl(tx.getDcFlag()),
+                    toAmount(tx.getMontant()),
+                    bankStatementName,
+                    bankMontant,
+                    bankLibelle));
+        }
+        return bankTx != null ? count : 0;
+    }
+
+    /** Extrait le numéro TPE depuis un libellé bancaire "VENTE PAR CARTE  000285". */
+    private String extractTpeFromBankLibelle(String libelle) {
+        if (libelle == null || libelle.isBlank()) {
+            return null;
+        }
+        Matcher m = BANK_TPE_PATTERN.matcher(libelle);
+        return m.find() ? m.group(1) : null;
+    }
+
+    /**
+     * Rapprochement par date (fallback pour anciennes données ou structure BARID_BANK).
+     */
+    private Optional<RapprochementResultDTO> buildDateBasedRapprochement(
+            Long batchId, String rib, List<CentreMonetiqueTransaction> cmTxs) {
+
+        Map<LocalDate, List<CentreMonetiqueTransaction>> cmByDate = new LinkedHashMap<>();
+        for (CentreMonetiqueTransaction tx : cmTxs) {
+            String section = tx.getSection() == null ? "" : tx.getSection().trim().toUpperCase(Locale.ROOT);
+            if (!section.equals("REMISE") && !section.startsWith("REGLEMENT ")) {
+                continue;
+            }
+            LocalDate d = parseRowDate(tx.getDate());
+            if (d == null) {
+                continue;
+            }
+            cmByDate.computeIfAbsent(d, k -> new ArrayList<>()).add(tx);
+        }
+
+        if (cmByDate.isEmpty()) {
+            return Optional.of(new RapprochementResultDTO(batchId, rib, cmTxs.size(), 0, List.of()));
+        }
+
+        Map<LocalDate, List<BankTransaction>> bankByDate = new HashMap<>();
+        if (rib != null && !rib.isBlank()) {
+            List<BankTransaction> bankTxs = bankTransactionRepository
+                    .findByStatementRibAndDateOperationIn(rib, cmByDate.keySet());
+            for (BankTransaction bt : bankTxs) {
+                if (bt.getDateOperation() != null) {
+                    bankByDate.computeIfAbsent(bt.getDateOperation(), k -> new ArrayList<>()).add(bt);
+                }
+            }
+        }
+
+        List<RapprochementResultDTO.RapprochementMatchDTO> matches = new ArrayList<>();
+        int matchedCount = 0;
+        for (Map.Entry<LocalDate, List<CentreMonetiqueTransaction>> entry : cmByDate.entrySet()) {
+            LocalDate date = entry.getKey();
+            List<CentreMonetiqueTransaction> txsForDate = entry.getValue();
+
+            int cmCount = txsForDate.size();
+            BigDecimal cmTotal = txsForDate.stream()
+                    .map(CentreMonetiqueTransaction::getMontant)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            String cmRef = cmCount == 1
+                    ? nvl(txsForDate.get(0).getReference())
+                    : cmCount + " transactions CM";
+            String cmTotalStr = toAmount(cmTotal);
+
+            List<BankTransaction> bankForDate = bankByDate.getOrDefault(date, List.of());
+            String bankStatementName = "";
+            String bankMontant = "";
+            String bankLibelle = "";
+            if (!bankForDate.isEmpty()) {
+                matchedCount += txsForDate.size();
+                bankStatementName = bankForDate.stream()
+                        .map(bt -> bt.getStatement() != null ? nvl(bt.getStatement().getOriginalName()) : "")
+                        .filter(s -> !s.isBlank())
+                        .distinct()
+                        .collect(Collectors.joining(" | "));
+                BigDecimal bankTotal = bankForDate.stream()
+                        .map(BankTransaction::getCredit)
+                        .filter(java.util.Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                bankMontant = toAmount(bankTotal);
+                bankLibelle = bankForDate.stream()
+                        .map(bt -> nvl(bt.getLibelle()))
+                        .filter(s -> !s.isBlank())
+                        .distinct()
+                        .collect(Collectors.joining(" / "));
+            }
+
+            for (CentreMonetiqueTransaction tx : txsForDate) {
+                matches.add(new RapprochementResultDTO.RapprochementMatchDTO(
+                        date.toString(),
+                        cmRef,
+                        cmTotalStr,
+                        nvl(tx.getReference()),
+                        nvl(tx.getDcFlag()),
+                        toAmount(tx.getMontant()),
+                        bankStatementName,
+                        bankMontant,
+                        bankLibelle));
+            }
+        }
+
+        return Optional.of(new RapprochementResultDTO(batchId, rib, cmTxs.size(), matchedCount, matches));
     }
 
     @Transactional
@@ -197,7 +473,8 @@ public class CentreMonetiqueWorkflowService {
             String section = row.getSection() == null ? "" : row.getSection().trim().toUpperCase(Locale.ROOT);
             boolean summaryRow = section.startsWith("TOTAL")
                     || section.startsWith("SOLDE NET REMISE")
-                    || section.startsWith("REGLEMENT META");
+                    || section.startsWith("REGLEMENT META")
+                    || section.equals("REMISE ACHAT");  // en-tête TPE, pas une transaction
             if (summaryRow) {
                 if (tx.getMontant() != null) {
                     totalMontant = totalMontant.add(tx.getMontant());
@@ -255,6 +532,7 @@ public class CentreMonetiqueWorkflowService {
                 batch.getId(),
                 batch.getFilename(),
                 batch.getOriginalName(),
+                nvl(batch.getRib()),
                 batch.getStatus(),
                 nvl(batch.getStructure()),
                 nvl(batch.getStatementPeriod()),
@@ -278,6 +556,7 @@ public class CentreMonetiqueWorkflowService {
                 batch.getId(),
                 batch.getFilename(),
                 batch.getOriginalName(),
+                nvl(batch.getRib()),
                 batch.getStatus(),
                 nvl(batch.getStructure()),
                 nvl(batch.getStatementPeriod()),
@@ -366,7 +645,9 @@ public class CentreMonetiqueWorkflowService {
         LocalDate max = null;
         for (CentreMonetiqueExtractionRow row : rows) {
             String section = row.getSection() == null ? "" : row.getSection().trim().toUpperCase(Locale.ROOT);
-            boolean isDetailRow = "REMISE".equals(section) || section.startsWith("REGLEMENT ");
+            boolean isDetailRow = "REMISE".equals(section)
+                    || (section.startsWith("REMISE ") && !section.equals("REMISE ACHAT"))
+                    || section.startsWith("REGLEMENT ");
             if (!isDetailRow || section.startsWith("REGLEMENT META")) {
                 continue;
             }

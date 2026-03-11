@@ -434,10 +434,27 @@ public class UniversalTransactionExtractionEngineImpl implements UniversalTransa
         text = DATE_TEXTUAL_PATTERN.matcher(text).replaceAll(" ");
         text = DATE_ANY_PATTERN.matcher(text).replaceAll(" ");
         text = COMPACT_FULL_DATE_PATTERN.matcher(text).replaceAll(" ");
+        // Normalise les montants OCR avec double séparateur (ex: "8442, ,50" ou "263902, ,50" → "8442,50")
+        // pour que DECIMAL_AMOUNT_PATTERN puisse les supprimer ensuite.
+        text = text.replaceAll("(?<!\\d)(\\d+)[,\\.]\\s+[,\\.](\\d{1,2})(?!\\d)", "$1,$2");
         text = DECIMAL_AMOUNT_PATTERN.matcher(text).replaceAll(" ");
+        // Supprime les fragments de montants résiduels non capturés (ex: "44177," "104.800,")
+        // qui proviennent d'une coupure OCR d'un montant entre deux lignes.
+        text = text.replaceAll("(?<!\\d)(?:\\d{1,3}(?:[\\s\\.]\\d{3})+|\\d{3,})[,\\.]\\s*", " ");
+        // Supprime les formats horaires OCR type "18H17", "12H11" avant les autres nettoyages.
+        text = text.replaceAll("(?i)\\b\\d{1,2}H\\d{2}\\b", " ");
         text = text.replaceAll("(?i)RIB\\b", " ");
         text = text.replaceAll("\\b(?:IBAN|BIC|SWIFT)\\b", " ");
         text = ALNUM_CODE_PREFIX_PATTERN.matcher(text).replaceFirst(" ");
+        // Supprime les codes de référence numériques purs en début de libellé
+        // (ex: BCP "484474 VIR. RECU..." → "VIR. RECU...").
+        text = text.replaceAll("^\\s*\\d{4,8}\\s+(?=[A-Z])", "");
+        // Supprime le préfixe /MM (ex: "/02 ") en début de libellé — artefact Saham Bank et similaires
+        // où le mois de l'opération est encodé sous forme "/02 LIBELLE..." dans la colonne description.
+        // Le \\s* initial absorbe les espaces éventuels avant le slash.
+        text = text.replaceAll("^\\s*/\\d{1,2}\\s+", "");
+        // Supprime les fragments décimaux résiduels (ex: ",00", ",90") laissés après suppression de la partie entière.
+        text = text.replaceAll("(?<=\\s|^)[,\\.]\\d{1,2}(?=\\s|$)", " ");
         return text.replaceAll("\\s{2,}", " ").trim();
     }
 

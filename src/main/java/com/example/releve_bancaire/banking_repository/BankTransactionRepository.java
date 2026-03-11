@@ -117,4 +117,36 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
             ORDER BY t.dateOperation ASC, t.id ASC
             """)
     List<BankTransaction> findAccountingCandidates(@Param("nmois") int nmois, @Param("year") Integer year);
+
+    // ==================== RAPPROCHEMENT CENTRE MONÉTIQUE ====================
+
+    /**
+     * Trouve les transactions bancaires dont le relevé a le RIB donné et dont
+     * la date d'opération est dans la liste fournie.
+     */
+    @Query("""
+            SELECT t
+            FROM BankTransaction t
+            JOIN FETCH t.statement s
+            WHERE s.rib = :rib
+              AND t.dateOperation IN :dates
+            ORDER BY t.dateOperation ASC, t.id ASC
+            """)
+    List<BankTransaction> findByStatementRibAndDateOperationIn(
+            @Param("rib") String rib,
+            @Param("dates") java.util.Collection<java.time.LocalDate> dates);
+
+    /**
+     * Trouve les transactions bancaires CMI de type "VENTE PAR CARTE" pour un RIB donné.
+     * Le libellé contient le numéro TPE : "VENTE PAR CARTE  000285".
+     */
+    @Query("""
+            SELECT t
+            FROM BankTransaction t
+            JOIN FETCH t.statement s
+            WHERE s.rib = :rib
+              AND UPPER(t.libelle) LIKE '%VENTE PAR CARTE%'
+            ORDER BY t.dateOperation ASC, t.id ASC
+            """)
+    List<BankTransaction> findByRibAndLibelleVenteParCarte(@Param("rib") String rib);
 }

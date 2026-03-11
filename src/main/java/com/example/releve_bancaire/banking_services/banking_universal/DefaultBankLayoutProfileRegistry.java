@@ -30,6 +30,9 @@ public class DefaultBankLayoutProfileRegistry implements BankLayoutProfileRegist
             "VIR CREDIT",
             "TRANSFERT RECU",
             "RECEPTION VIREMENT",
+            "RECEPTION D'UN VIREMENT",
+            "VENTE PAR CARTE",
+            "VENTE CARTE",
             "REMISE",
             "REMISE CHEQUE",
             "REMISE CHEQUES",
@@ -103,7 +106,10 @@ public class DefaultBankLayoutProfileRegistry implements BankLayoutProfileRegist
             "VIR.EMIS",
             "VIR EMIS",
             "VIREMENT SORTANT",
+            "EMISSION D'UN VIREMENT",
+            "EMISSION VIREMENT",
             "TRANSFERT EMIS",
+            "TRANSFERT CASH",
             "REGLEMENT FOURNISSEUR",
             "REGLEMENT",
             "ECHEANCE",
@@ -125,6 +131,7 @@ public class DefaultBankLayoutProfileRegistry implements BankLayoutProfileRegist
             BankType.BMCI, new StaticBankLayoutProfile(BASE_CREDIT, BASE_DEBIT, BASE_IGNORED),
             BankType.SOCIETE_GENERALE, new StaticBankLayoutProfile(BASE_CREDIT, BASE_DEBIT, BASE_IGNORED),
             BankType.CREDIT_AGRICOLE, new StaticBankLayoutProfile(BASE_CREDIT, BASE_DEBIT, BASE_IGNORED),
+            BankType.SAHAM_BANK, new StaticBankLayoutProfile(BASE_CREDIT, BASE_DEBIT, BASE_IGNORED),
             BankType.BARID_BANK, new StaticBankLayoutProfile(BASE_CREDIT, BASE_DEBIT, BASE_IGNORED));
 
     @Override
