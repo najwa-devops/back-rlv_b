@@ -40,7 +40,7 @@ public class CentreMonetiqueTransaction {
     @Column(length = 32)
     private String reference;
 
-    @Column(name = "dc_flag", length = 2)
+    @Column(name = "dc_flag", length = 16)
     private String dcFlag;
 
     @Column(precision = 15, scale = 2)

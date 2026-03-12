@@ -47,7 +47,11 @@ public class MetadataExtractorService {
         metadata.bankType = detection.bankType;
         metadata.bankName = detection.bankName;
 
-        metadata.rib = primaryRibExtractor.extractPrimaryRib(ocrText);
+        // AMEX documents (SUBMISSION DETAILS) contain ARNs and approval codes that can
+        // accidentally form 24-digit sequences — they never contain Moroccan RIBs
+        if (metadata.bankType != BankType.AMEX) {
+            metadata.rib = primaryRibExtractor.extractPrimaryRib(ocrText);
+        }
 
         StatementPeriodExtractor.StatementPeriod period = periodExtractor.extractPeriod(ocrText);
         if (period != null) {

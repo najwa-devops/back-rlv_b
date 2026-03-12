@@ -36,6 +36,13 @@ public class TransactionExtractorService {
     private static final Pattern START_DAY_MONTH_PATTERN = Pattern.compile(
             "^\\s*(?:\\d\\s+)?(?:[0-9A-Z]{4,10}\\s+)?(\\d{1,2})\\s*[\\/\\-.\\s]\\s*(\\d{1,2})\\b",
             Pattern.CASE_INSENSITIVE);
+    /**
+     * CIH Bank : PDFBox colle les deux colonnes de dates (Date Opération + Date Valeur) sans espace,
+     * ex: "16/0116/01 FRAIS..." au lieu de "16/01 16/01 FRAIS...".
+     * Ce pattern détecte deux dates DD/MM consécutives sans séparateur pour les séparer.
+     */
+    private static final Pattern CIH_CONCAT_DATES_PATTERN = Pattern.compile(
+            "(?<![\\d/])((?:0?[1-9]|[12]\\d|3[01])/(?:0?[1-9]|1[0-2]))((?:0?[1-9]|[12]\\d|3[01])/(?:0?[1-9]|1[0-2]))(?![\\d/])");
 
     private final OcrCleaningService cleaningService;
     private final BankDetector bankDetector;
@@ -83,6 +90,9 @@ public class TransactionExtractorService {
 
         String cleanedText = cleaningService.cleanOcrText(ocrText);
         String textWithoutHeaderFooter = headerFooterCleaner.removeHeaderFooter(cleanedText);
+        if (bankType == BankType.CIH) {
+            textWithoutHeaderFooter = normalizeCihDateColumns(textWithoutHeaderFooter);
+        }
         Integer resolvedYear = resolveStatementYear(statementYear, textWithoutHeaderFooter, cleanedText);
         Integer resolvedMonth = resolveStatementMonth(statementMonth, textWithoutHeaderFooter, cleanedText);
 
@@ -261,6 +271,17 @@ public class TransactionExtractorService {
             }
         }
         return false;
+    }
+
+    /**
+     * CIH Bank : insère un espace entre deux dates DD/MM collées sans séparateur par PDFBox.
+     * Ex: "16/0116/01 FRAIS SOUSCRIPTION CARTE 93,50" → "16/01 16/01 FRAIS SOUSCRIPTION CARTE 93,50"
+     */
+    private String normalizeCihDateColumns(String text) {
+        if (text == null || text.isBlank()) {
+            return text;
+        }
+        return CIH_CONCAT_DATES_PATTERN.matcher(text).replaceAll("$1 $2");
     }
 
     private BankType mapManualType(String manualBankType) {

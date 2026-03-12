@@ -5,7 +5,8 @@ import java.util.Locale;
 public enum CentreMonetiqueStructureType {
     AUTO,
     CMI,
-    BARID_BANK;
+    BARID_BANK,
+    AMEX;
 
     public static CentreMonetiqueStructureType fromNullable(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -17,6 +18,9 @@ public enum CentreMonetiqueStructureType {
                 .toUpperCase(Locale.ROOT);
         if ("BARID".equals(normalized) || "AL_BARID_BANK".equals(normalized)) {
             return BARID_BANK;
+        }
+        if ("AMERICAN_EXPRESS".equals(normalized) || "AMERICAN EXPRESS".equals(normalized)) {
+            return AMEX;
         }
         try {
             return valueOf(normalized);

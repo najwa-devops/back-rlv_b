@@ -41,9 +41,15 @@ public class CentreMonetiqueExtractionService {
     private static final Pattern BARID_RIB_NCOMPTE_PATTERN = Pattern.compile(
             "\\bN\\s*COMPTE\\s*[:\\-]?\\s*([0-9]{20,30})\\b",
             Pattern.CASE_INSENSITIVE);
-    /** Fallback : toute séquence de 24 chiffres isolés dans le texte. */
+    /** Fallback : toute séquence de 24 chiffres isolés dans le texte (doit commencer par 0 = RIB marocain). */
     private static final Pattern STANDALONE_24_DIGITS_PATTERN = Pattern.compile(
-            "(?<!\\d)([0-9]{24})(?!\\d)");
+            "(?<!\\d)(0[0-9]{23})(?!\\d)");
+    /**
+     * Cherche un bloc de chiffres séparés par des espaces dont la concaténation donne exactement 24 digits.
+     * Ex : "022 450 0001720005069328 53"  → "022450000172000506932853"
+     */
+    private static final Pattern RIB_SPACED_PATTERN = Pattern.compile(
+            "(\\d[\\d ]{22,32}\\d)");
 
     private static final Pattern CARD_TYPE_PATTERN = Pattern.compile("(?:^|\\s)([VM])(?:\\s|$)");
 
@@ -67,6 +73,27 @@ public class CentreMonetiqueExtractionService {
     private static final Pattern BARID_TVA_CAPTURE = Pattern.compile(
             "COMM\\s*\\.?\\s*TVA(?:\\s*\\.(?!\\d))?\\s*[:\\-]?\\s*([0-9][0-9.,]*|[.,][0-9]+)",
             Pattern.CASE_INSENSITIVE);
+
+    // AMEX patterns
+    private static final Pattern AMEX_SETTLEMENT_DATE_PATTERN = Pattern.compile(
+            "(?i)Settlement\\s+Date\\s+(\\d{1,2}/\\d{1,2}/\\d{4})");
+    private static final Pattern AMEX_SETTLEMENT_REF_PATTERN = Pattern.compile(
+            "(?i)Settlement\\s+Reference\\s+Number\\s+(\\S+)");
+    /** Matches terminal sub-group header: "...{terminal_id} - {terminal_name} Submission Amount..." */
+    private static final Pattern AMEX_TERMINAL_LINE_PATTERN = Pattern.compile(
+            "(\\d{7,12})\\s*-\\s*[A-Za-z][A-Za-z\\s]+?\\s+[Ss]ubmission\\s+[Aa]mount",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern AMEX_DISCOUNT_LABEL_PATTERN = Pattern.compile(
+            "(?i)Discount\\s+Amount\\s+([0-9][0-9.,]*)");
+    private static final Pattern AMEX_NET_LABEL_PATTERN = Pattern.compile(
+            "(?i)^Net\\s+Amount\\s+([0-9][0-9.,]*)");
+    private static final Pattern AMEX_TOTAL_TERMINAL_PATTERN = Pattern.compile(
+            "(?i)Total\\s+For\\s+Terminal\\b");
+    private static final Pattern AMEX_SUB_TOTAL_PATTERN = Pattern.compile(
+            "(?i)^Sub\\s+Total\\b");
+    private static final Pattern AMEX_TX_LINE_PATTERN = Pattern.compile(
+            "^(\\d{1,2}/\\d{1,2}/\\d{4})\\s+(\\d{1,2}/\\d{1,2}/\\d{4})\\s+(.*)");
+
     private final CentreMonetiqueOcrService ocrService;
 
     public ExtractionPayload extract(byte[] fileData,
@@ -98,7 +125,9 @@ public class CentreMonetiqueExtractionService {
         String extractedRib = extractRibFromText(text);
         CentreMonetiqueStructureType effectiveStructure = resolveStructure(text, requestedStructure);
         ExtractionPayload base;
-        if (effectiveStructure == CentreMonetiqueStructureType.BARID_BANK) {
+        if (effectiveStructure == CentreMonetiqueStructureType.AMEX) {
+            base = extractAmex(text, statementYear);
+        } else if (effectiveStructure == CentreMonetiqueStructureType.BARID_BANK) {
             base = extractBarid(text, statementYear);
         } else {
             base = extractCmi(text, statementYear);
@@ -481,12 +510,218 @@ public class CentreMonetiqueExtractionService {
         return new ExtractionPayload(text, rows, totals, CentreMonetiqueStructureType.BARID_BANK.name());
     }
 
+    /**
+     * Extraction AMEX "Submission Details".
+     * Sections produites :
+     *   "AMEX SETTLEMENT"     – en-tête de règlement (date, ref)
+     *   "AMEX TERMINAL"       – en-tête de terminal (terminal_id)
+     *   "AMEX {terminal_id}"  – ligne de transaction individuelle
+     *   "AMEX TOTAL TERMINAL" – total par terminal
+     *   "AMEX SUB TOTAL"      – sous-total du règlement
+     */
+    private ExtractionPayload extractAmex(String text, Integer statementYear) {
+        List<CentreMonetiqueExtractionRow> rows = new ArrayList<>();
+        String[] lines = text.split("\\n");
+
+        String settlementDate = "";
+        String settlementRef = "";
+        String currentTerminalId = "";
+        boolean inDocument = false;
+        boolean awaitingTerminalDiscount = false;
+        boolean awaitingTerminalNet = false;
+        BigDecimal totalSubmission = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+        BigDecimal totalNet = BigDecimal.ZERO;
+        boolean hasTransactions = false;
+
+        for (String rawLine : lines) {
+            String line = rawLine == null ? "" : rawLine.trim();
+            if (line.isEmpty()) continue;
+            String upper = normalizeUpper(line);
+
+            // Settlement header: "... Settlement Date DD/MM/YYYY"
+            Matcher settleDateMatcher = AMEX_SETTLEMENT_DATE_PATTERN.matcher(line);
+            if (settleDateMatcher.find()) {
+                settlementDate = settleDateMatcher.group(1);
+                inDocument = true;
+                awaitingTerminalDiscount = false;
+                awaitingTerminalNet = false;
+                Matcher refMatcher = AMEX_SETTLEMENT_REF_PATTERN.matcher(line);
+                if (refMatcher.find()) {
+                    settlementRef = refMatcher.group(1);
+                }
+                rows.add(new CentreMonetiqueExtractionRow(
+                        "AMEX SETTLEMENT", settlementDate, settlementRef, "", "", "", ""));
+                continue;
+            }
+
+            if (!inDocument) continue;
+
+            // Settlement reference number (separate line)
+            if (settlementRef.isEmpty()) {
+                Matcher refMatcher = AMEX_SETTLEMENT_REF_PATTERN.matcher(line);
+                if (refMatcher.find()) {
+                    settlementRef = refMatcher.group(1);
+                    continue;
+                }
+            }
+
+            // Skip column header line
+            if (upper.contains("SUBMISSION DATE") && upper.contains("TRANSACTION DATE")) {
+                continue;
+            }
+
+            // Terminal sub-group header: "... {terminal_id} - {terminal_name} Submission Amount ..."
+            Matcher terminalLineMatcher = AMEX_TERMINAL_LINE_PATTERN.matcher(line);
+            if (terminalLineMatcher.find()) {
+                currentTerminalId = terminalLineMatcher.group(1);
+                awaitingTerminalDiscount = true;
+                awaitingTerminalNet = false;
+                rows.add(new CentreMonetiqueExtractionRow(
+                        "AMEX TERMINAL", settlementDate, currentTerminalId, "", "", "", ""));
+                continue;
+            }
+
+            // Discount Amount line following terminal header
+            if (awaitingTerminalDiscount) {
+                Matcher discountMatcher = AMEX_DISCOUNT_LABEL_PATTERN.matcher(line);
+                if (discountMatcher.find()) {
+                    awaitingTerminalDiscount = false;
+                    awaitingTerminalNet = true;
+                    continue;
+                }
+            }
+
+            // Net Amount line following discount line
+            if (awaitingTerminalNet) {
+                Matcher netMatcher = AMEX_NET_LABEL_PATTERN.matcher(line);
+                if (netMatcher.find()) {
+                    awaitingTerminalNet = false;
+                    continue;
+                }
+            }
+
+            // Transaction line: starts with DD/MM/YYYY DD/MM/YYYY
+            Matcher txMatcher = AMEX_TX_LINE_PATTERN.matcher(line);
+            if (txMatcher.find()) {
+                AmexTransaction tx = parseAmexTransactionLine(line);
+                if (tx != null) {
+                    String sectionName = "AMEX " + (currentTerminalId.isEmpty() ? "TX" : currentTerminalId);
+                    rows.add(new CentreMonetiqueExtractionRow(
+                            sectionName,
+                            tx.submissionDate(),
+                            tx.cardNumber(),
+                            formatAmount(tx.submission()),
+                            formatAmount(tx.discount()),
+                            formatAmount(tx.net()),
+                            tx.transactionDate()));
+                    if (tx.submission() != null) totalSubmission = totalSubmission.add(tx.submission());
+                    if (tx.discount() != null) totalDiscount = totalDiscount.add(tx.discount());
+                    if (tx.net() != null) totalNet = totalNet.add(tx.net());
+                    hasTransactions = true;
+                }
+                continue;
+            }
+
+            // Total For Terminal line
+            if (AMEX_TOTAL_TERMINAL_PATTERN.matcher(upper).find()) {
+                List<BigDecimal> amounts = extractAllAmounts(line);
+                BigDecimal totSub  = amounts.size() >= 3 ? amounts.get(amounts.size() - 3) : null;
+                BigDecimal totDisc = amounts.size() >= 2 ? amounts.get(amounts.size() - 2) : null;
+                BigDecimal totNet  = amounts.size() >= 1 ? amounts.get(amounts.size() - 1) : null;
+                rows.add(new CentreMonetiqueExtractionRow(
+                        "AMEX TOTAL TERMINAL", "",
+                        currentTerminalId,
+                        formatAmount(totSub), formatAmount(totDisc), formatAmount(totNet), ""));
+                continue;
+            }
+
+            // Sub Total line (settlement level)
+            if (AMEX_SUB_TOTAL_PATTERN.matcher(upper).find()) {
+                List<BigDecimal> amounts = extractAllAmounts(line);
+                BigDecimal totSub  = amounts.size() >= 3 ? amounts.get(amounts.size() - 3) : null;
+                BigDecimal totDisc = amounts.size() >= 2 ? amounts.get(amounts.size() - 2) : null;
+                BigDecimal totNet  = amounts.size() >= 1 ? amounts.get(amounts.size() - 1) : null;
+                rows.add(new CentreMonetiqueExtractionRow(
+                        "AMEX SUB TOTAL",
+                        settlementDate,
+                        settlementRef,
+                        formatAmount(totSub != null ? totSub : totalSubmission),
+                        formatAmount(totDisc != null ? totDisc : totalDiscount),
+                        formatAmount(totNet != null ? totNet : totalNet),
+                        ""));
+            }
+        }
+
+        SummaryTotals totals = new SummaryTotals(
+                hasTransactions ? scale2(totalSubmission) : null,
+                hasTransactions ? scale2(totalDiscount) : null,
+                null,
+                hasTransactions ? scale2(totalNet) : null);
+
+        return new ExtractionPayload(text, rows, totals, CentreMonetiqueStructureType.AMEX.name());
+    }
+
+    /**
+     * Parse une ligne de transaction AMEX.
+     * Format : DD/MM/YYYY DD/MM/YYYY {card} {terminal} {batch} {rate} {submission} {discount} {net} {approval} {arn}
+     * Les 3 derniers montants décimaux (X.XX) sont submission, discount, net.
+     */
+    private AmexTransaction parseAmexTransactionLine(String line) {
+        String trimmed = line.trim().replaceAll("\\s+", " ");
+        String[] tokens = trimmed.split(" ");
+        if (tokens.length < 8) return null;
+        if (!tokens[0].matches("\\d{1,2}/\\d{1,2}/\\d{4}")) return null;
+        if (!tokens[1].matches("\\d{1,2}/\\d{1,2}/\\d{4}")) return null;
+
+        String submissionDate   = tokens[0]; // first date DD/MM/YYYY
+        String transactionDate  = tokens[1]; // second date DD/MM/YYYY
+
+        // Card number: first token after the two dates that contains '-'
+        String cardNumber = "";
+        for (int i = 2; i < Math.min(tokens.length, 7); i++) {
+            if (tokens[i].contains("-") && tokens[i].matches("[0-9*Xx\\-]{10,25}")) {
+                cardNumber = tokens[i];
+                break;
+            }
+        }
+
+        // Collect decimal amounts in X.XX or X,XXX.XX format
+        List<BigDecimal> amounts = new ArrayList<>();
+        for (String token : tokens) {
+            if (token.matches("\\d+\\.\\d{2}") || token.matches("\\d{1,3}(?:,\\d{3})*\\.\\d{2}")) {
+                BigDecimal amount = parseAmount(token);
+                if (amount != null) amounts.add(amount);
+            }
+        }
+        if (amounts.size() < 3) return null;
+
+        BigDecimal submission = amounts.get(amounts.size() - 3);
+        BigDecimal discount   = amounts.get(amounts.size() - 2);
+        BigDecimal net        = amounts.get(amounts.size() - 1);
+        return new AmexTransaction(submissionDate, transactionDate, cardNumber, submission, discount, net);
+    }
+
+    private List<BigDecimal> extractAllAmounts(String line) {
+        List<BigDecimal> amounts = new ArrayList<>();
+        Matcher matcher = AMOUNT_PATTERN.matcher(line);
+        while (matcher.find()) {
+            BigDecimal parsed = parseAmount(matcher.group());
+            if (parsed != null) amounts.add(parsed);
+        }
+        return amounts;
+    }
+
     private CentreMonetiqueStructureType resolveStructure(String text, CentreMonetiqueStructureType requestedStructure) {
         CentreMonetiqueStructureType requested = requestedStructure != null ? requestedStructure : CentreMonetiqueStructureType.AUTO;
         if (requested != CentreMonetiqueStructureType.AUTO) {
             return requested;
         }
         String normalized = normalizeUpper(text);
+        if (normalized.contains("SUBMISSION DETAILS")
+                && (normalized.contains("SETTLEMENT DATE") || normalized.contains("DISCOUNT RATE"))) {
+            return CentreMonetiqueStructureType.AMEX;
+        }
         if (normalized.contains("REGLEMENT")
                 && normalized.contains("MONTANT DE REGLEMENT")
                 && normalized.contains("NCOMPTE")) {
@@ -894,30 +1129,55 @@ public class CentreMonetiqueExtractionService {
         if (text == null || text.isBlank()) {
             return null;
         }
-        // 1) CMI compact : RIB sur la même ligne que le label
+        // 1) CMI compact : RIB contigu sur la même ligne que le label
         Matcher m1 = CMI_RIB_PATTERN.matcher(text);
         if (m1.find()) {
             return m1.group(1);
         }
-        // 2) Saham Bank / CMI multi-lignes : le RIB est réparti sur la ligne suivante
-        //    sous forme de groupes séparés par des espaces : "022  450  0001720005069328  53"
+        // 2) RIB label trouvé : cherche 24 chiffres dans le voisinage (même ligne + 3 suivantes)
+        //    Gère : chiffres groupés avec espaces, chiffres sur la ligne suivante, lignes mixtes.
         String[] lines = text.split("\\n");
         for (int i = 0; i < lines.length; i++) {
             String upper = normalizeUpper(lines[i]);
-            if (upper.contains("RIB COMPTE DE DOMICILIATION") || upper.contains("RIB COMPTE")) {
-                // Chercher 24 chiffres sur la ligne courante et les 2 lignes suivantes
-                for (int j = i; j <= Math.min(i + 2, lines.length - 1); j++) {
-                    String digits = lines[j].replaceAll("[^0-9]", "");
+            boolean hasLabel = upper.contains("RIB COMPTE DE DOMICILIATION")
+                    || upper.contains("RIB COMPTE")
+                    || upper.contains("COMPTE DE DOMICILIATION");
+            if (!hasLabel) continue;
+
+            // Fenêtre de recherche : ligne actuelle + 3 suivantes
+            for (int j = i; j <= Math.min(i + 3, lines.length - 1); j++) {
+                String candidate = lines[j];
+                // a) chiffres contigus == 24
+                String stripped = candidate.replaceAll("[^0-9]", "");
+                if (stripped.length() == 24) {
+                    return stripped;
+                }
+                // b) cherche un bloc "chiffres + espaces" dont les digits font 24
+                Matcher sm = RIB_SPACED_PATTERN.matcher(candidate);
+                while (sm.find()) {
+                    String digits = sm.group(1).replaceAll("[^0-9]", "");
                     if (digits.length() == 24) {
                         return digits;
                     }
                 }
-                // Tenter la concaténation ligne courante + ligne suivante
-                if (i + 1 < lines.length) {
-                    String combined = (lines[i] + " " + lines[i + 1]).replaceAll("[^0-9]", "");
-                    if (combined.length() == 24) {
-                        return combined;
+                // c) si digits > 24, prendre les 24 premiers (cas ligne label + RIB contigus)
+                if (stripped.length() > 24 && stripped.length() <= 30) {
+                    // Vérifier qu'il n'y a pas d'autres chiffres parasites en cherchant le RIB
+                    // comme le plus long bloc contigu de chiffres de la ligne
+                    Matcher dm = Pattern.compile("[0-9]{20,30}").matcher(candidate);
+                    while (dm.find()) {
+                        String g = dm.group();
+                        if (g.length() == 24) return g;
+                        if (g.length() > 24) return g.substring(0, 24);
                     }
+                }
+            }
+            // d) concaténation de plusieurs lignes successives
+            for (int k = 1; k <= 3 && (i + k) < lines.length; k++) {
+                String combined = String.join("", java.util.Arrays.copyOfRange(lines, i, i + k + 1))
+                        .replaceAll("[^0-9]", "");
+                if (combined.length() == 24) {
+                    return combined;
                 }
             }
         }
@@ -930,6 +1190,18 @@ public class CentreMonetiqueExtractionService {
         Matcher m3 = STANDALONE_24_DIGITS_PATTERN.matcher(text);
         if (m3.find()) {
             return m3.group(1);
+        }
+        // 5) Fallback global pour RIB espacés (ex: "022 450 0001720005069328 53")
+        //    Cherche dans chaque ligne un bloc chiffres+espaces dont la concaténation fait 24 digits
+        //    Et qui commence par 0 (RIB marocain valide)
+        for (String line : text.split("\\n")) {
+            Matcher sm = RIB_SPACED_PATTERN.matcher(line.trim());
+            while (sm.find()) {
+                String digits = sm.group(1).replaceAll("[^0-9]", "");
+                if (digits.length() == 24 && digits.startsWith("0")) {
+                    return digits;
+                }
+            }
         }
         return null;
     }
@@ -966,5 +1238,13 @@ public class CentreMonetiqueExtractionService {
                                 BigDecimal totalCommissionsHt,
                                 BigDecimal totalTvaSurCommissions,
                                 BigDecimal soldeNetRemise) {
+    }
+
+    private record AmexTransaction(String submissionDate,
+                                   String transactionDate,
+                                   String cardNumber,
+                                   BigDecimal submission,
+                                   BigDecimal discount,
+                                   BigDecimal net) {
     }
 }

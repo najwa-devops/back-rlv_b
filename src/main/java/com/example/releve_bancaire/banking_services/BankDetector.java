@@ -60,6 +60,10 @@ public class BankDetector {
                 || containsAny(normalizedAll, "SAHAM", "SAHAM BANK")) {
             return new BankDetection(BankType.SAHAM_BANK, "SAHAM BANK");
         }
+        if (containsAny(normalized, "AMERICAN EXPRESS", "AMEX")
+                || containsAny(normalizedAll, "AMERICAN EXPRESS", "AMEX")) {
+            return new BankDetection(BankType.AMEX, "AMERICAN EXPRESS");
+        }
         if (containsAny(normalized, "DAR AL AMANE", "DAR AL-AMANE")
                 || containsAny(normalizedAll, "DAR AL AMANE", "DAR AL-AMANE")) {
             return new BankDetection(BankType.SOCIETE_GENERALE, "DAR AL-AMANE");

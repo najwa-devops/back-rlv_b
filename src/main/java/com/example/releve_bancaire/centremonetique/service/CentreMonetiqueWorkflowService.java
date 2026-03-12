@@ -1,6 +1,7 @@
 package com.example.releve_bancaire.centremonetique.service;
 
 import com.example.releve_bancaire.banking_entity.BankTransaction;
+import com.example.releve_bancaire.banking_repository.BankStatementRepository;
 import com.example.releve_bancaire.banking_repository.BankTransactionRepository;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchDetailDTO;
 import com.example.releve_bancaire.centremonetique.dto.CentreMonetiqueBatchSummaryDTO;
@@ -47,6 +48,7 @@ public class CentreMonetiqueWorkflowService {
     private final CentreMonetiqueTransactionRepository transactionRepository;
     private final CentreMonetiqueExtractionService extractionService;
     private final BankTransactionRepository bankTransactionRepository;
+    private final BankStatementRepository bankStatementRepository;
 
     @Transactional
     public CentreMonetiqueBatchDetailDTO uploadAndExtract(MultipartFile file,
@@ -206,15 +208,29 @@ public class CentreMonetiqueWorkflowService {
             return Optional.of(new RapprochementResultDTO(batchId, rib, 0, 0, List.of()));
         }
 
+        // Nombre réel de transactions (hors lignes d'en-tête et totaux)
+        int realTxCount = batch.getTransactionCount() != null && batch.getTransactionCount() > 0
+                ? batch.getTransactionCount()
+                : (int) cmTxs.stream().filter(tx -> {
+                    String s = nvl(tx.getSection()).trim().toUpperCase(Locale.ROOT);
+                    return !s.startsWith("TOTAL") && !s.startsWith("SOLDE NET")
+                            && !s.equals("REMISE ACHAT") && !s.startsWith("REGLEMENT META")
+                            && !s.startsWith("REGLEMENT TOTALS")
+                            && !s.equals("AMEX SETTLEMENT") && !s.equals("AMEX TERMINAL")
+                            && !s.equals("AMEX TOTAL TERMINAL") && !s.equals("AMEX SUB TOTAL");
+                }).count();
+
         // Détecter si les données sont au nouveau format (avec lignes REMISE ACHAT contenant le TPE).
         boolean hasRemiseAchat = cmTxs.stream()
                 .anyMatch(tx -> "REMISE ACHAT".equalsIgnoreCase(nvl(tx.getSection()).trim()));
 
-        if (hasRemiseAchat) {
-            return buildTpeBasedRapprochement(batchId, rib, cmTxs);
-        } else {
-            return buildDateBasedRapprochement(batchId, rib, cmTxs);
-        }
+        Optional<RapprochementResultDTO> result = hasRemiseAchat
+                ? buildTpeBasedRapprochement(batchId, rib, cmTxs)
+                : buildDateBasedRapprochement(batchId, rib, cmTxs);
+
+        // Remplacer totalCmTransactions par le vrai comptage (sans les lignes d'en-tête/totaux)
+        return result.map(r -> new RapprochementResultDTO(
+                r.getBatchId(), r.getBatchRib(), realTxCount, r.getMatchedCount(), r.getMatches()));
     }
 
     /**
@@ -343,7 +359,12 @@ public class CentreMonetiqueWorkflowService {
         Map<LocalDate, List<CentreMonetiqueTransaction>> cmByDate = new LinkedHashMap<>();
         for (CentreMonetiqueTransaction tx : cmTxs) {
             String section = tx.getSection() == null ? "" : tx.getSection().trim().toUpperCase(Locale.ROOT);
-            if (!section.equals("REMISE") && !section.startsWith("REGLEMENT ")) {
+            boolean isDetailSection = section.equals("REMISE")
+                    || section.startsWith("REGLEMENT ")
+                    || (section.startsWith("AMEX ") && !section.equals("AMEX SETTLEMENT")
+                            && !section.equals("AMEX TERMINAL") && !section.equals("AMEX TOTAL TERMINAL")
+                            && !section.equals("AMEX SUB TOTAL"));
+            if (!isDetailSection) {
                 continue;
             }
             LocalDate d = parseRowDate(tx.getDate());
@@ -464,7 +485,7 @@ public class CentreMonetiqueWorkflowService {
             tx.setSection(trimTo(row.getSection(), 64));
             tx.setDate(trimTo(row.getDate(), 16));
             tx.setReference(trimTo(row.getReference(), 32));
-            tx.setDcFlag(trimTo(row.getDc(), 2));
+            tx.setDcFlag(trimTo(row.getDc(), 16));
             tx.setMontant(parseDecimal(row.getMontant()));
             tx.setDebit(parseDecimal(row.getDebit()));
             tx.setCredit(parseDecimal(row.getCredit()));
@@ -474,7 +495,11 @@ public class CentreMonetiqueWorkflowService {
             boolean summaryRow = section.startsWith("TOTAL")
                     || section.startsWith("SOLDE NET REMISE")
                     || section.startsWith("REGLEMENT META")
-                    || section.equals("REMISE ACHAT");  // en-tête TPE, pas une transaction
+                    || section.equals("REMISE ACHAT")
+                    || section.equals("AMEX SETTLEMENT")
+                    || section.equals("AMEX TERMINAL")
+                    || section.equals("AMEX TOTAL TERMINAL")
+                    || section.equals("AMEX SUB TOTAL");
             if (summaryRow) {
                 if (tx.getMontant() != null) {
                     totalMontant = totalMontant.add(tx.getMontant());
@@ -528,6 +553,8 @@ public class CentreMonetiqueWorkflowService {
     }
 
     private CentreMonetiqueBatchSummaryDTO toSummaryDTO(CentreMonetiqueBatch batch) {
+        boolean isLinked = batch.getRib() != null && !batch.getRib().isBlank()
+                && bankStatementRepository.countByRib(batch.getRib()) > 0;
         return new CentreMonetiqueBatchSummaryDTO(
                 batch.getId(),
                 batch.getFilename(),
@@ -546,7 +573,8 @@ public class CentreMonetiqueWorkflowService {
                 batch.getTransactionCount(),
                 toDateTime(batch.getCreatedAt()),
                 toDateTime(batch.getUpdatedAt()),
-                batch.getErrorMessage());
+                batch.getErrorMessage(),
+                isLinked);
     }
 
     private CentreMonetiqueBatchDetailDTO toDetailDTO(CentreMonetiqueBatch batch,
@@ -647,7 +675,10 @@ public class CentreMonetiqueWorkflowService {
             String section = row.getSection() == null ? "" : row.getSection().trim().toUpperCase(Locale.ROOT);
             boolean isDetailRow = "REMISE".equals(section)
                     || (section.startsWith("REMISE ") && !section.equals("REMISE ACHAT"))
-                    || section.startsWith("REGLEMENT ");
+                    || section.startsWith("REGLEMENT ")
+                    || (section.startsWith("AMEX ") && !section.equals("AMEX SETTLEMENT")
+                            && !section.equals("AMEX TERMINAL") && !section.equals("AMEX TOTAL TERMINAL")
+                            && !section.equals("AMEX SUB TOTAL"));
             if (!isDetailRow || section.startsWith("REGLEMENT META")) {
                 continue;
             }

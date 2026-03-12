@@ -1,5 +1,6 @@
 package com.example.releve_bancaire.centremonetique.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,4 +27,6 @@ public class CentreMonetiqueBatchSummaryDTO {
     private String createdAt;
     private String updatedAt;
     private String errorMessage;
+    @JsonProperty("isLinkedToStatement")
+    private boolean isLinkedToStatement;
 }

@@ -21,6 +21,8 @@ public class DefaultBankLayoutProfileRegistry implements BankLayoutProfileRegist
             "CR",
             "VIREMENT RECU",
             "VIREMENT RECU DE",
+            "VIREMENT INSTANTANE RECU",
+            "VIREMENT INSTANTANE RECU DE",
             "VIREMENT ENTRANT",
             "VIREMENT EN FAVEUR",
             "VIR RECU",

@@ -630,6 +630,7 @@ public class BankStatementProcessingService {
                 case CREDIT_DU_MAROC -> "CREDIT DU MAROC";
                 case CREDIT_AGRICOLE -> "CREDIT AGRICOLE";
                 case SAHAM_BANK -> "SAHAM BANK";
+                case AMEX -> "AMERICAN EXPRESS";
                 case UNKNOWN -> null;
             };
         }

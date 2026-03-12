@@ -21,7 +21,11 @@ public class StatementPeriodExtractor {
                     + "(\\d{1,2})\\s*[\\/\\-\\.\\s]+\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]+\\s*(\\d{2,4})\\s*$",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern CLOSING_DATE_PATTERN = Pattern.compile(
-            "SOLDE\\s+FINAL\\s+AU\\s+(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{4})",
+            "(?:SOLDE\\s+FINAL|NOUVEAU\\s+SOLDE)\\s+AU\\s+(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{4})",
+            Pattern.CASE_INSENSITIVE);
+    // CIH Bank : "SOLDE DEPART AU : 31/12/2025" indique la date de début de période
+    private static final Pattern SOLDE_DEPART_DATE_PATTERN = Pattern.compile(
+            "SOLDE\\s+DEPART\\s+AU\\s*:?\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{4})",
             Pattern.CASE_INSENSITIVE);
 
     public StatementPeriod extractPeriod(String text) {
@@ -59,7 +63,12 @@ public class StatementPeriodExtractor {
         if (closingMatcher.find()) {
             LocalDate end = parseDate(closingMatcher.group(1), closingMatcher.group(2), closingMatcher.group(3));
             if (end != null) {
-                return new StatementPeriod(null, end, end.getMonthValue(), end.getYear());
+                LocalDate start = null;
+                Matcher departMatcher = SOLDE_DEPART_DATE_PATTERN.matcher(normalized);
+                if (departMatcher.find()) {
+                    start = parseDate(departMatcher.group(1), departMatcher.group(2), departMatcher.group(3));
+                }
+                return new StatementPeriod(start, end, end.getMonthValue(), end.getYear());
             }
         }
 

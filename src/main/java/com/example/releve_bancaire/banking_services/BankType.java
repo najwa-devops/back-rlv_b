@@ -11,5 +11,6 @@ public enum BankType {
     BMCE,
     ATTIJARIWAFA,
     SAHAM_BANK,
+    AMEX,
     UNKNOWN
 }

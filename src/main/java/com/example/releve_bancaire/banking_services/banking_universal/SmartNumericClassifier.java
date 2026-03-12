@@ -19,20 +19,26 @@ public class SmartNumericClassifier implements NumericClassifier {
             "(?<!\\d)((?:\\d\\s+){1,}\\d)\\s*([,.])\\s*((?:\\d\\s+){1,}\\d)(?!\\d)");
     private static final Pattern TRAILING_TOKEN_PATTERN = Pattern.compile("(?:^|\\s)(\\d{1,2})\\s+(\\d{1,2})\\s*$");
     private static final Pattern TRAILING_DAY_ONLY_PATTERN = Pattern.compile("(?:^|\\s)(\\d{1,2})\\s*$");
-    private static final Pattern VIR_RECU_PATTERN = Pattern.compile("\\bVIR\\s*[\\./-]?\\s*RECU\\b");
+    // Reconnaît VIR.RECU, VIR RECU, VIREMENT RECU, et aussi VIREMENT INSTANTANE RECU (CIH Bank)
+    // où un mot intermédiaire peut s'intercaler entre VIR(EMENT) et RECU.
+    private static final Pattern VIR_RECU_PATTERN = Pattern.compile(
+            "\\bVIR(?:EMENT)?(?:\\s*[\\./-]\\s*|\\s+(?:\\w+\\s+)?)RECU\\b");
     private static final Pattern VIREMENT_VERS_CLIENT_PATTERN = Pattern.compile(
             "\\bVIREMENT\\s*\\(?S?\\)?\\s+VERS\\s+CLIENT\\s*\\(?S?\\)?\\b");
     private static final int MIN_COLUMN_GAP = 10;
     private static final List<String> STRONG_DEBIT_HINTS = List.of(
             "OPERATION AU DEBIT", "PRELEVEMENT", "PRELEVEMENT SEPA", "RETRAIT", "PAIEMENT", "ACHAT", "CHEQUE",
             "FRAIS", "COMMISSION", "AGIOS", "COTISATION", "VIREMENT EMIS", "VIR.EMIS", "DIRECT DEBIT", "CASH OUT",
-            "EMISSION D'UN VIREMENT", "EMISSION VIREMENT", "TRANSFERT CASH", "REGLEMENT D'ECHEANCE");
+            "EMISSION D'UN VIREMENT", "EMISSION VIREMENT", "TRANSFERT CASH", "REGLEMENT D'ECHEANCE",
+            // CIH / banques marocaines : "COMMISSION REMISE CHEQUE" = frais sur remise, toujours débit
+            "COMMISSION REMISE");
     // Pattern pour supprimer les montants référencés "DE MAD X" du libellé (ex: FRAIS DE VIR No X DE MAD 263902,00 1072,50)
     // afin que seul le montant transactionnel réel (le dernier) soit extrait.
     private static final Pattern DE_MAD_REF_PATTERN = Pattern.compile(
             "(?i)\\bDE\\s+MAD\\s+((?:\\d{1,3}(?:[\\s\\.]\\d{3})*|\\d+)[,.]\\d{2})(?=\\s+(?:\\d{1,3}(?:[\\s\\.]\\d{3})*|\\d+)[,.]\\d{2})");
     private static final List<String> STRONG_CREDIT_HINTS = List.of(
-            "VIREMENT RECU", "VIR RECU", "VIR.RECU", "CREDIT VIREMENT", "VERSEMENT", "REMISE CHEQUE",
+            "VIREMENT RECU", "VIR RECU", "VIR.RECU", "VIREMENT INSTANTANE RECU", "CREDIT VIREMENT",
+            "VERSEMENT", "REMISE CHEQUE",
             "REMISE", "ENCAISSEMENT", "REMBOURSEMENT", "SALAIRE", "PAYROLL", "SALARY", "REFUND", "CASH IN",
             "VENTE PAR CARTE", "VENTE CARTE", "RECEPTION D'UN VIREMENT", "RECEPTION VIREMENT DE");
     private final OcrCleaningService cleaningService;
