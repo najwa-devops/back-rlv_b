@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public class CentreMonetiqueExtractionService {
 
     private static final Pattern START_PATTERN = Pattern.compile(
-            "^\\s*(?:ACHAT\\s+)?REM[I1L][S5]E(?:\\s+TPE)?(?:\\s+N[°\\*.]?[A-Z0-9-]+)?\\b.*$",
+            "^\\s*(?:(?:ACHAT|CREDIT\\s+VOUCHER)\\s+)?REM[I1L][S5]E(?:\\s+TPE)?(?:\\s+N[°\\*.]?[A-Z0-9-]+)?\\b.*$",
             Pattern.CASE_INSENSITIVE);
 
     private static final Pattern TOTAL_REMISE_PATTERN = Pattern.compile("\\bTOTAL\\s+REM[I1L][S5]E(?:S)?(?:\\s*\\(\\s*D?H\\s*\\))?\\b", Pattern.CASE_INSENSITIVE);

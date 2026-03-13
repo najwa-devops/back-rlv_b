@@ -44,6 +44,14 @@ public class CentreMonetiqueWorkflowService {
             "VENTE\\s+PAR\\s+CARTE\\s+([A-Z0-9]{4,10})\\b",
             Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Extrait le code TPE depuis les derniers chiffres d'un libellé bancaire.
+     * Couvre : "AZAR RESTAURAN294055", "ATTEATUDE CAF000294", "AZAR REST MARRAKEC000028".
+     * Le TPE est toujours les 5 ou 6 derniers chiffres du libellé.
+     */
+    private static final Pattern BANK_TPE_TRAILING_PATTERN = Pattern.compile(
+            "([0-9]{5,6})\\s*$");
+
     /** Extrait le code commerçant depuis un libellé bancaire "... ACQ86097 ...". */
     private static final Pattern BANK_ACQ_PATTERN = Pattern.compile(
             "ACQ([0-9]{4,10})\\b",
@@ -263,14 +271,18 @@ public class CentreMonetiqueWorkflowService {
     private Optional<RapprochementResultDTO> buildTpeBasedRapprochement(
             Long batchId, String rib, List<CentreMonetiqueTransaction> cmTxs) {
 
-        // Charger les transactions bancaires "VENTE PAR CARTE" pour ce RIB.
-        Map<String, BankTransaction> bankByTpe = new LinkedHashMap<>();
+        // Charger TOUTES les transactions crédit pour ce RIB.
+        // Lookup strict : tpe -> Map<amountKey, BankTransaction>.
+        // La liaison nécessite TPE identique ET montant SOLDE NET REMISE == crédit bancaire.
+        Map<String, Map<String, BankTransaction>> bankByTpeAndAmount = new LinkedHashMap<>();
         if (rib != null && !rib.isBlank()) {
-            List<BankTransaction> bankTxs = bankTransactionRepository.findByRibAndLibelleVenteParCarte(rib);
+            List<BankTransaction> bankTxs = bankTransactionRepository.findCreditTransactionsByRib(rib);
             for (BankTransaction bt : bankTxs) {
                 String tpe = extractTpeFromBankLibelle(nvl(bt.getLibelle()));
-                if (tpe != null && !tpe.isBlank()) {
-                    bankByTpe.putIfAbsent(tpe, bt);
+                if (tpe != null && !tpe.isBlank() && bt.getCredit() != null) {
+                    bankByTpeAndAmount
+                            .computeIfAbsent(tpe, k -> new LinkedHashMap<>())
+                            .putIfAbsent(amountKey(bt.getCredit()), bt);
                 }
             }
         }
@@ -291,7 +303,7 @@ public class CentreMonetiqueWorkflowService {
                 // Fermer le bloc précédent
                 if (currentTpe != null) {
                     matchedCount += flushTpeBlock(currentTpe, currentHeaderDate, currentBlockTxs,
-                            currentSoldeNet, bankByTpe, matches);
+                            currentSoldeNet, bankByTpeAndAmount, matches);
                 }
                 currentTpe = nvl(tx.getReference()).trim();
                 currentHeaderDate = nvl(tx.getDate()).trim();
@@ -306,7 +318,7 @@ public class CentreMonetiqueWorkflowService {
         // Fermer le dernier bloc
         if (currentTpe != null) {
             matchedCount += flushTpeBlock(currentTpe, currentHeaderDate, currentBlockTxs,
-                    currentSoldeNet, bankByTpe, matches);
+                    currentSoldeNet, bankByTpeAndAmount, matches);
         }
 
         return Optional.of(new RapprochementResultDTO(batchId, rib, cmTxs.size(), matchedCount, matches));
@@ -314,13 +326,14 @@ public class CentreMonetiqueWorkflowService {
 
     /**
      * Construit les lignes de correspondance pour un bloc CMI (un TPE terminal).
+     * Liaison stricte : TPE identique ET montant SOLDE NET REMISE == crédit bancaire.
      * Retourne le nombre de transactions CM ajoutées comme appariées.
      */
     private int flushTpeBlock(String tpe,
                                String headerDate,
                                List<CentreMonetiqueTransaction> blockTxs,
                                BigDecimal soldeNet,
-                               Map<String, BankTransaction> bankByTpe,
+                               Map<String, Map<String, BankTransaction>> bankByTpeAndAmount,
                                List<RapprochementResultDTO.RapprochementMatchDTO> matches) {
         if (blockTxs.isEmpty()) {
             return 0;
@@ -332,8 +345,12 @@ public class CentreMonetiqueWorkflowService {
         // Montant CM = SOLDE NET REMISE du bloc (ce qui arrive sur le compte bancaire)
         String cmMontant = toAmount(soldeNet);
 
-        // Liaison bancaire par TPE
-        BankTransaction bankTx = bankByTpe.get(tpe);
+        // Liaison stricte : TPE + montant SOLDE NET REMISE doivent être identiques.
+        // Aucun fallback — si les montants diffèrent, pas de liaison bancaire.
+        BankTransaction bankTx = null;
+        if (soldeNet != null && bankByTpeAndAmount.containsKey(tpe)) {
+            bankTx = bankByTpeAndAmount.get(tpe).get(amountKey(soldeNet));
+        }
         String bankStatementName = "";
         String bankMontant = "";
         String bankLibelle = "";
@@ -364,13 +381,21 @@ public class CentreMonetiqueWorkflowService {
         return bankTx != null ? count : 0;
     }
 
-    /** Extrait le numéro TPE depuis un libellé bancaire "VENTE PAR CARTE  000285". */
+    /**
+     * Extrait le numéro TPE depuis un libellé bancaire.
+     * Essaie d'abord "VENTE PAR CARTE {tpe}", puis prend les 5-6 derniers chiffres du libellé.
+     * Couvre : "VENTE PAR CARTE 000293", "AZAR RESTAURAN294055", "ATTEATUDE CAF000294".
+     */
     private String extractTpeFromBankLibelle(String libelle) {
         if (libelle == null || libelle.isBlank()) {
             return null;
         }
         Matcher m = BANK_TPE_PATTERN.matcher(libelle);
-        return m.find() ? m.group(1) : null;
+        if (m.find()) {
+            return m.group(1);
+        }
+        Matcher m2 = BANK_TPE_TRAILING_PATTERN.matcher(libelle.trim());
+        return m2.find() ? m2.group(1) : null;
     }
 
     /**

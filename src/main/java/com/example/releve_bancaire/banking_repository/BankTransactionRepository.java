@@ -151,6 +151,21 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
     List<BankTransaction> findByRibAndLibelleVenteParCarte(@Param("rib") String rib);
 
     /**
+     * Trouve toutes les transactions crédit pour un RIB donné (CMI TPE rapprochement élargi).
+     * Couvre "VENTE PAR CARTE 000293", "AZAR RESTAURAN294055", "ATTEATUDE CAF000294", etc.
+     */
+    @Query("""
+            SELECT t
+            FROM BankTransaction t
+            JOIN FETCH t.statement s
+            WHERE s.rib = :rib
+              AND t.credit IS NOT NULL
+              AND t.credit > 0
+            ORDER BY t.dateOperation ASC, t.id ASC
+            """)
+    List<BankTransaction> findCreditTransactionsByRib(@Param("rib") String rib);
+
+    /**
      * Trouve les transactions bancaires BARID BANK de type virement commerçant pour un RIB donné.
      * Le libellé contient "BARID CASH" : "RECEPTION D'UN VIREMENT DE Merchant ACQ86097 ... BARID CASH".
      */
