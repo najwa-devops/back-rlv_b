@@ -28,5 +28,5 @@ public class CentreMonetiqueBatchSummaryDTO {
     private String updatedAt;
     private String errorMessage;
     @JsonProperty("isLinkedToStatement")
-    private boolean isLinkedToStatement;
+    private boolean linkedToStatement;
 }

@@ -44,6 +44,15 @@ public class CentreMonetiqueWorkflowService {
             "VENTE\\s+PAR\\s+CARTE\\s+([A-Z0-9]{4,10})\\b",
             Pattern.CASE_INSENSITIVE);
 
+    /** Extrait le code commerçant depuis un libellé bancaire "... ACQ86097 ...". */
+    private static final Pattern BANK_ACQ_PATTERN = Pattern.compile(
+            "ACQ([0-9]{4,10})\\b",
+            Pattern.CASE_INSENSITIVE);
+
+    /** Extrait le code commerçant depuis le texte OCR BARID_BANK "COMMERCANT : 86097". */
+    private static final Pattern BARID_COMMERCANT_CODE_PATTERN = Pattern.compile(
+            "(?i)COMMERCANT\\s*[:\\-]?\\s*(?:[^\\d\\n]{0,40})?([0-9]{4,10})");
+
     private final CentreMonetiqueBatchRepository batchRepository;
     private final CentreMonetiqueTransactionRepository transactionRepository;
     private final CentreMonetiqueExtractionService extractionService;
@@ -159,10 +168,16 @@ public class CentreMonetiqueWorkflowService {
                 effectiveStructure);
         List<CentreMonetiqueExtractionRow> rows = payload.rows();
         batch.setRawOcrText(payload.rawOcrText());
-        batch.setStructure(payload.detectedStructure() != null && !payload.detectedStructure().isBlank()
+        String resolvedStructure = payload.detectedStructure() != null && !payload.detectedStructure().isBlank()
                 ? payload.detectedStructure()
-                : CentreMonetiqueStructureType.AUTO.name());
-        if ((batch.getRib() == null || batch.getRib().isBlank()) && payload.extractedRib() != null && !payload.extractedRib().isBlank()) {
+                : CentreMonetiqueStructureType.AUTO.name();
+        batch.setStructure(resolvedStructure);
+        // AMEX documents never contain Moroccan RIBs — clear any previously auto-extracted false RIB.
+        // A manually-set RIB (user intentionally entered via UI) is not affected here since reprocess
+        // cannot distinguish manual vs auto; the user can re-enter a real RIB after reprocess if needed.
+        if (CentreMonetiqueStructureType.AMEX.name().equals(resolvedStructure)) {
+            batch.setRib(null);
+        } else if ((batch.getRib() == null || batch.getRib().isBlank()) && payload.extractedRib() != null && !payload.extractedRib().isBlank()) {
             batch.setRib(payload.extractedRib());
         }
         persistRows(batch, rows, payload.summaryTotals());
@@ -224,9 +239,17 @@ public class CentreMonetiqueWorkflowService {
         boolean hasRemiseAchat = cmTxs.stream()
                 .anyMatch(tx -> "REMISE ACHAT".equalsIgnoreCase(nvl(tx.getSection()).trim()));
 
-        Optional<RapprochementResultDTO> result = hasRemiseAchat
-                ? buildTpeBasedRapprochement(batchId, rib, cmTxs)
-                : buildDateBasedRapprochement(batchId, rib, cmTxs);
+        boolean isBarid = CentreMonetiqueStructureType.BARID_BANK.name()
+                .equalsIgnoreCase(nvl(batch.getStructure()).trim());
+
+        Optional<RapprochementResultDTO> result;
+        if (isBarid) {
+            result = buildBaridRapprochement(batchId, rib, cmTxs, batch.getRawOcrText());
+        } else if (hasRemiseAchat) {
+            result = buildTpeBasedRapprochement(batchId, rib, cmTxs);
+        } else {
+            result = buildDateBasedRapprochement(batchId, rib, cmTxs);
+        }
 
         // Remplacer totalCmTransactions par le vrai comptage (sans les lignes d'en-tête/totaux)
         return result.map(r -> new RapprochementResultDTO(
@@ -351,7 +374,158 @@ public class CentreMonetiqueWorkflowService {
     }
 
     /**
-     * Rapprochement par date (fallback pour anciennes données ou structure BARID_BANK).
+     * Rapprochement BARID BANK : liaison par montant de règlement + code commerçant ACQ.
+     * Chaque bloc REGLEMENT dans le CM correspond à un virement bancaire unique :
+     *   - Montant de règlement (CM) == Crédit (relevé bancaire)
+     *   - Code commerçant "COMMERCANT :" (CM) == ACQ{code} dans le libellé bancaire
+     */
+    private Optional<RapprochementResultDTO> buildBaridRapprochement(
+            Long batchId, String rib, List<CentreMonetiqueTransaction> cmTxs, String rawOcrText) {
+
+        // Extraire le code commerçant depuis le texte OCR ("COMMERCANT : 86097")
+        String merchantCode = extractBaridMerchantCode(rawOcrText);
+
+        // Charger les transactions bancaires BARID CASH pour ce RIB
+        List<BankTransaction> bankTxs = List.of();
+        if (rib != null && !rib.isBlank()) {
+            bankTxs = bankTransactionRepository.findByRibAndLibelleBaridCash(rib);
+        }
+
+        // Construire la table de lookup : clé = montant crédit normalisé -> transaction bancaire
+        // Si le code commerçant est connu, filtrer aussi par ACQ{merchantCode} dans le libellé
+        Map<String, BankTransaction> bankByAmount = new LinkedHashMap<>();
+        for (BankTransaction bt : bankTxs) {
+            if (bt.getCredit() == null) continue;
+            boolean acqMatches = merchantCode == null || merchantCode.isBlank()
+                    || nvl(bt.getLibelle()).toUpperCase(Locale.ROOT).contains("ACQ" + merchantCode);
+            if (acqMatches) {
+                bankByAmount.putIfAbsent(amountKey(bt.getCredit()), bt);
+            }
+        }
+        // Fallback sans filtre commerçant si aucun match n'a été trouvé par code
+        if (bankByAmount.isEmpty() && !bankTxs.isEmpty()) {
+            for (BankTransaction bt : bankTxs) {
+                if (bt.getCredit() != null) {
+                    bankByAmount.putIfAbsent(amountKey(bt.getCredit()), bt);
+                }
+            }
+        }
+
+        List<RapprochementResultDTO.RapprochementMatchDTO> matches = new ArrayList<>();
+        int matchedCount = 0;
+
+        // Ordre réel des lignes dans l'extraction BARID_BANK pour un bloc :
+        //   1. REGLEMENT {id}  (transactions individuelles)
+        //   2. REGLEMENT META  (date du règlement — String tx.getDate())
+        //   3. REGLEMENT TOTALS (montant de règlement — BigDecimal tx.getMontant(),
+        //                        id du règlement    — String tx.getReference())
+        //   4. TOTAL REMISE / SOLDE NET REMISE (totaux — ignorés ici)
+        // => flush déclenché à la réception de REGLEMENT TOTALS.
+        String currentDate = null;
+        List<CentreMonetiqueTransaction> currentBlockTxs = new ArrayList<>();
+
+        for (CentreMonetiqueTransaction tx : cmTxs) {
+            String section = nvl(tx.getSection()).trim().toUpperCase(Locale.ROOT);
+
+            if (section.equals("REGLEMENT META")) {
+                // Sauvegarder la date (String)
+                String d = nvl(tx.getDate());
+                if (!d.isBlank()) currentDate = d;
+
+            } else if (section.equals("REGLEMENT TOTALS")) {
+                // Montant de règlement (BigDecimal) et id (String reference)
+                BigDecimal montantReglement = tx.getMontant();
+                String reglementId = nvl(tx.getReference());
+                if (!currentBlockTxs.isEmpty()) {
+                    matchedCount += flushBaridBlock(currentDate, reglementId,
+                            montantReglement, currentBlockTxs, bankByAmount, matches);
+                }
+                // Réinitialiser pour le bloc suivant
+                currentDate = null;
+                currentBlockTxs = new ArrayList<>();
+
+            } else if (section.startsWith("REGLEMENT ")
+                    && !section.equals("REGLEMENT META")
+                    && !section.equals("REGLEMENT TOTALS")) {
+                currentBlockTxs.add(tx);
+            }
+        }
+        // Flush du dernier bloc si REGLEMENT TOTALS absent (données incomplètes)
+        if (!currentBlockTxs.isEmpty()) {
+            matchedCount += flushBaridBlock(currentDate, "",
+                    null, currentBlockTxs, bankByAmount, matches);
+        }
+
+        return Optional.of(new RapprochementResultDTO(batchId, rib, cmTxs.size(), matchedCount, matches));
+    }
+
+    /**
+     * Construit les lignes de correspondance pour un bloc BARID BANK (un REGLEMENT).
+     * Retourne le nombre de transactions CM ajoutées comme appariées.
+     */
+    private int flushBaridBlock(String date,
+                                 String reglementId,
+                                 BigDecimal montantReglement,
+                                 List<CentreMonetiqueTransaction> blockTxs,
+                                 Map<String, BankTransaction> bankByAmount,
+                                 List<RapprochementResultDTO.RapprochementMatchDTO> matches) {
+        if (blockTxs.isEmpty()) return 0;
+
+        int count = blockTxs.size();
+        String cmRef = count == 1
+                ? ("REGLEMENT " + reglementId)
+                : (count + " transactions CM");
+        String cmMontant = toAmount(montantReglement);
+
+        // Trouver la transaction bancaire correspondante par montant de règlement
+        BankTransaction bankTx = montantReglement != null
+                ? bankByAmount.get(amountKey(montantReglement))
+                : null;
+
+        String bankStatementName = "";
+        String bankMontant = "";
+        String bankLibelle = "";
+        if (bankTx != null) {
+            bankStatementName = bankTx.getStatement() != null
+                    ? nvl(bankTx.getStatement().getOriginalName()) : "";
+            bankMontant = toAmount(bankTx.getCredit());
+            bankLibelle = nvl(bankTx.getLibelle());
+        }
+
+        String blockDate = (date != null && !date.isBlank())
+                ? date
+                : nvl(blockTxs.get(0).getDate());
+
+        for (CentreMonetiqueTransaction tx : blockTxs) {
+            matches.add(new RapprochementResultDTO.RapprochementMatchDTO(
+                    blockDate,
+                    cmRef,
+                    cmMontant,
+                    nvl(tx.getReference()),
+                    nvl(tx.getDcFlag()),
+                    toAmount(tx.getMontant()),
+                    bankStatementName,
+                    bankMontant,
+                    bankLibelle));
+        }
+        return bankTx != null ? count : 0;
+    }
+
+    /** Extrait le code commerçant BARID BANK depuis le texte OCR ("COMMERCANT : 86097"). */
+    private String extractBaridMerchantCode(String rawOcrText) {
+        if (rawOcrText == null || rawOcrText.isBlank()) return null;
+        Matcher m = BARID_COMMERCANT_CODE_PATTERN.matcher(rawOcrText);
+        return m.find() ? m.group(1) : null;
+    }
+
+    /** Clé normalisée pour comparer des montants (2 décimales fixes). */
+    private String amountKey(BigDecimal amount) {
+        if (amount == null) return "";
+        return amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    /**
+     * Rapprochement par date (fallback pour CMI sans lignes REMISE ACHAT).
      */
     private Optional<RapprochementResultDTO> buildDateBasedRapprochement(
             Long batchId, String rib, List<CentreMonetiqueTransaction> cmTxs) {

@@ -122,8 +122,12 @@ public class CentreMonetiqueExtractionService {
                     null);
         }
 
-        String extractedRib = extractRibFromText(text);
         CentreMonetiqueStructureType effectiveStructure = resolveStructure(text, requestedStructure);
+        // AMEX documents (SUBMISSION DETAILS) never contain Moroccan RIBs — skip extraction entirely
+        // to avoid false positives from ARN numbers / approval codes that form 24-digit sequences.
+        String extractedRib = effectiveStructure == CentreMonetiqueStructureType.AMEX
+                ? null
+                : extractRibFromText(text);
         ExtractionPayload base;
         if (effectiveStructure == CentreMonetiqueStructureType.AMEX) {
             base = extractAmex(text, statementYear);

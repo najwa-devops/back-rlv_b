@@ -149,4 +149,18 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
             ORDER BY t.dateOperation ASC, t.id ASC
             """)
     List<BankTransaction> findByRibAndLibelleVenteParCarte(@Param("rib") String rib);
+
+    /**
+     * Trouve les transactions bancaires BARID BANK de type virement commerçant pour un RIB donné.
+     * Le libellé contient "BARID CASH" : "RECEPTION D'UN VIREMENT DE Merchant ACQ86097 ... BARID CASH".
+     */
+    @Query("""
+            SELECT t
+            FROM BankTransaction t
+            JOIN FETCH t.statement s
+            WHERE s.rib = :rib
+              AND UPPER(t.libelle) LIKE '%BARID CASH%'
+            ORDER BY t.dateOperation ASC, t.id ASC
+            """)
+    List<BankTransaction> findByRibAndLibelleBaridCash(@Param("rib") String rib);
 }
