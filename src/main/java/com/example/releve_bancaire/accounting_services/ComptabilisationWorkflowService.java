@@ -4,6 +4,8 @@ import com.example.releve_bancaire.accounting_entity.AccountingEntry;
 import com.example.releve_bancaire.accounting_repository.AccountingEntryRepository;
 import com.example.releve_bancaire.accounting_repository.CptjournalJdbcRepository;
 import com.example.releve_bancaire.accounting_repository.CptjournalSyncTrackerRepository;
+import com.example.releve_bancaire.liaison_rlv_b_ctr_mntq.dto.CmExpansionDTO;
+import com.example.releve_bancaire.liaison_rlv_b_ctr_mntq.service.CentreMonetiqueLiaisonService;
 import com.example.releve_bancaire.releve_bancaire.entity.BankStatement;
 import com.example.releve_bancaire.releve_bancaire.entity.BankStatus;
 import com.example.releve_bancaire.releve_bancaire.entity.BankTransaction;
@@ -33,12 +35,20 @@ public class ComptabilisationWorkflowService {
     private static final String DEFAULT_TX_COMPTE = "349700000";
     private static final String ACCOUNT_CODE_REGEX = "^\\d{9}$";
     private static final String VALIDER_TRUE = "1";
+    private static final String LABEL_TOTAL_REMISE = "TOTAL REMISE (DH)";
+    private static final String LABEL_COMMISSION_HT = "TOTAL COMMISSIONS HT";
+    private static final String LABEL_TVA_SUR_COMMISSIONS = "TOTAL TVA SUR COMMISSIONS";
+    private static final String LABEL_SOLDE_NET_REMISE = "SOLDE NET REMISE";
+    private static final String TOTAL_REMISE_COMPTE = "349700000";
+    private static final String COMMISSION_COMPTE = "614700000";
+    private static final String TVA_COMPTE = "345520100";
 
     private final BankStatementRepository bankStatementRepository;
     private final BankTransactionRepository bankTransactionRepository;
     private final AccountingEntryRepository accountingEntryRepository;
     private final CptjournalJdbcRepository cptjournalJdbcRepository;
     private final CptjournalSyncTrackerRepository cptjournalSyncTrackerRepository;
+    private final CentreMonetiqueLiaisonService centreMonetiqueLiaisonService;
 
     @Value("${accounting.default-journal:BQ}")
     private String defaultJournal;
@@ -71,6 +81,12 @@ public class ComptabilisationWorkflowService {
         String nmoisTexte = String.format("%02d", nmois);
         long fallbackNumero = accountingEntryRepository.findMaxNumeroByJournalAndMonth(journal, nmois) + 1;
 
+        List<CmExpansionDTO> cmExpansions = centreMonetiqueLiaisonService.getCmExpansionsForStatement(statementId);
+        Map<Long, CmExpansionDTO> cmByTxId = new ConcurrentHashMap<>();
+        for (CmExpansionDTO exp : cmExpansions) {
+            cmByTxId.put(exp.bankTransactionId(), exp);
+        }
+
         List<SimulatedEntry> rows = new ArrayList<>();
         for (BankTransaction tx : transactions) {
             LocalDate dateOperation = tx.getDateOperation();
@@ -82,38 +98,106 @@ public class ComptabilisationWorkflowService {
             BigDecimal credit = tx.getCredit() == null ? BigDecimal.ZERO : tx.getCredit();
             String libelle = tx.getLibelle() == null ? "" : tx.getLibelle();
             String contrepartie = sanitizeTransactionAccount(tx.getCompte());
+            CmExpansionDTO cmExp = cmByTxId.get(tx.getId());
 
             long numeroMain = resolveTransactionNumero(tx, fallbackNumero);
             if (tx.getTransactionIndex() == null || tx.getTransactionIndex() <= 0) {
                 fallbackNumero++;
             }
-            // 1ere ecriture: compte de la transaction choisi dans le detail du releve.
-            rows.add(new SimulatedEntry(
-                    numeroMain,
-                    moisTexte,
-                    nmoisTexte,
-                    dateOperation,
-                    journal,
-                    contrepartie,
-                    libelle,
-                    debit,
-                    credit,
-                    tx.getId(),
-                    false));
 
-            // 2eme ecriture (contrepartie): compte principal provenant du XML/config directeur.
-            rows.add(new SimulatedEntry(
-                    numeroMain,
-                    moisTexte,
-                    nmoisTexte,
-                    dateOperation,
-                    journal,
-                    bankAccount,
-                    libelle,
-                    credit,
-                    debit,
-                    tx.getId(),
-                    true));
+            if (cmExp != null && Boolean.TRUE.equals(tx.getCmApplied())) {
+                BigDecimal commissionHt = parseAmount(cmExp.commissionHt());
+                BigDecimal tvaSurCommissions = parseAmount(cmExp.tvaSurCommissions());
+                BigDecimal soldeNet = parseAmount(cmExp.cmMontant());
+                if (soldeNet.compareTo(BigDecimal.ZERO) == 0) {
+                    soldeNet = credit.compareTo(BigDecimal.ZERO) > 0 ? credit : debit;
+                }
+                BigDecimal totalRemise = soldeNet.add(commissionHt).add(tvaSurCommissions);
+
+                // 1) Total remise (DH) -> CREDIT sur compte 349700000
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        TOTAL_REMISE_COMPTE,
+                        libelle,
+                        BigDecimal.ZERO,
+                        totalRemise,
+                        tx.getId(),
+                        false));
+
+                // 2) Commission HT -> DEBIT sur compte 614700000
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        COMMISSION_COMPTE,
+                        libelle,
+                        commissionHt,
+                        BigDecimal.ZERO,
+                        tx.getId(),
+                        false));
+
+                // 3) TVA sur commissions -> DEBIT sur compte 345520100
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        TVA_COMPTE,
+                        libelle,
+                        tvaSurCommissions,
+                        BigDecimal.ZERO,
+                        tx.getId(),
+                        false));
+
+                // 4) Solde net remise -> DEBIT sur compte principal
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        bankAccount,
+                        libelle,
+                        soldeNet,
+                        BigDecimal.ZERO,
+                        tx.getId(),
+                        true));
+            } else {
+                // 1ere ecriture: compte de la transaction choisi dans le detail du releve.
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        contrepartie,
+                        libelle,
+                        debit,
+                        credit,
+                        tx.getId(),
+                        false));
+
+                // 2eme ecriture (contrepartie): compte principal provenant du XML/config directeur.
+                rows.add(new SimulatedEntry(
+                        numeroMain,
+                        moisTexte,
+                        nmoisTexte,
+                        dateOperation,
+                        journal,
+                        bankAccount,
+                        libelle,
+                        credit,
+                        debit,
+                        tx.getId(),
+                        true));
+            }
         }
 
         String simulationId = UUID.randomUUID().toString();
@@ -296,6 +380,17 @@ public class ComptabilisationWorkflowService {
         }
         String value = account.trim();
         return value.matches(ACCOUNT_CODE_REGEX) ? value : DEFAULT_TX_COMPTE;
+    }
+
+    private BigDecimal parseAmount(String value) {
+        if (value == null || value.isBlank()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(value.trim());
+        } catch (NumberFormatException ignored) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private long resolveTransactionNumero(BankTransaction tx, long fallbackNumero) {

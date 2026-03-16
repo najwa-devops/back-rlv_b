@@ -32,6 +32,7 @@ public class BankTransactionMapper {
                 .sens(entity.getSens())
                 .compte(entity.getCompte())
                 .isLinked(entity.getIsLinked())
+                .cmApplied(entity.getCmApplied())
                 .categorie(entity.getCategorie())
                 .role(entity.getRole())
                 .extractionConfidence(entity.getExtractionConfidence())

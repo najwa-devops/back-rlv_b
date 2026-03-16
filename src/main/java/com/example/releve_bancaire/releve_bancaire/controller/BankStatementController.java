@@ -95,6 +95,23 @@ public class BankStatementController {
                                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")));
             }
 
+            // Vérifier doublon AVANT création du relevé
+            try {
+                Optional<BankStatement> duplicate = processingService.detectDuplicateFromUpload(
+                        file.getBytes(), originalName);
+                if (duplicate.isPresent()) {
+                    BankStatement existing = duplicate.get();
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                            "error", "Doublon détecté: même RIB/période déjà présent",
+                            "duplicateOfId", existing.getId(),
+                            "rib", existing.getRib(),
+                            "month", existing.getMonth(),
+                            "year", existing.getYear()));
+                }
+            } catch (Exception e) {
+                log.warn("Vérification doublon upload ignorée: {}", e.getMessage());
+            }
+
             // Stocker le fichier
             BankFileStorageService.StoredBankFile storedFile = bankFileStorageService.storeBankStatement(file);
             log.info("✅ Fichier stocké en base: {}", storedFile.filename());
@@ -245,6 +262,13 @@ public class BankStatementController {
             return ResponseEntity.noContent().build();
         }
 
+        BankStatement statement = statementOpt.get();
+        if (!statement.isModifiable()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Relevé comptabilisé/validé, suppression impossible",
+                    "status", statement.getStatus() != null ? statement.getStatus().name() : "UNKNOWN"));
+        }
+
         processingService.deleteStatement(id);
         return ResponseEntity.noContent().build();
     }
@@ -252,6 +276,12 @@ public class BankStatementController {
     @DeleteMapping("/all")
     @Transactional
     public ResponseEntity<?> deleteAll() {
+        long accountedCount = repository.countByStatus(BankStatus.COMPTABILISE);
+        if (accountedCount > 0) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "error", "Suppression impossible: relevés comptabilisés présents",
+                    "accountedCount", accountedCount));
+        }
         log.info("🗑️ Suppression de TOUS les relevés bancaires");
         transactionRepository.deleteAllInBatch();
         repository.deleteAllInBatch();
@@ -327,6 +357,11 @@ public class BankStatementController {
 
         return repository.findById(id)
                 .map(statement -> {
+                    if (statement.getStatus() == BankStatus.COMPTABILISE && requested != BankStatus.COMPTABILISE) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                                "error", "Relevé comptabilisé, modification du statut impossible",
+                                "currentStatus", statement.getStatus().name()));
+                    }
                     try {
                         if (requested == BankStatus.COMPTABILISE) {
                             String userId = request.getUpdatedBy() == null || request.getUpdatedBy().isBlank()
@@ -614,6 +649,7 @@ public class BankStatementController {
                     txMap.put("compte", displayedCompte);
                     txMap.put("compteLibelle", accountLabelsByCode.getOrDefault(displayedCompte, ""));
                     txMap.put("isLinked", displayIsLinked(t.getIsLinked(), displayedCompte));
+                    txMap.put("cmApplied", Boolean.TRUE.equals(t.getCmApplied()));
                     txMap.put("sens", t.getSens());
                     txMap.put("isValid", t.getIsValid());
                     return txMap;
@@ -653,8 +689,9 @@ public class BankStatementController {
         response.put("isBalanceValid", source.getIsBalanceValid());
         response.put("isContinuityValid", source.getIsContinuityValid());
         response.put("isLinked", false);
+        response.put("cmApplied", false);
         response.put("canReprocess", statement.isModifiable() && statement.getStatus() != BankStatus.PROCESSING);
-        response.put("canDelete", true);
+        response.put("canDelete", statement.isModifiable());
         response.put("createdAt", statement.getCreatedAt());
         response.put("updatedAt", statement.getUpdatedAt());
         response.put("accountedAt", statement.getAccountedAt());

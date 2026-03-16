@@ -8,6 +8,7 @@ import lombok.Data;
 public class BankTransactionUpdateRequest {
     private String compte;
     private Boolean isLinked;
+    private Boolean cmApplied;
     private String categorie;
     private String libelle;
 }

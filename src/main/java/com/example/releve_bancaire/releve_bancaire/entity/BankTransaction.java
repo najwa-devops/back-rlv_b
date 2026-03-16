@@ -71,6 +71,9 @@ public class BankTransaction {
     @Column(nullable = false)
     private Boolean isLinked = false;
 
+    @Column(name = "cm_applied", nullable = false)
+    private Boolean cmApplied = false;
+
     // ==================== CLASSIFICATION ====================
 
     @Column(length = 50)

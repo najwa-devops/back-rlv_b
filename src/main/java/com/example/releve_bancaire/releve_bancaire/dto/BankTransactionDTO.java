@@ -36,6 +36,7 @@ public class BankTransactionDTO {
     // Comptabilité
     private String compte;
     private Boolean isLinked;
+    private Boolean cmApplied;
 
     // Classification
     private String categorie;

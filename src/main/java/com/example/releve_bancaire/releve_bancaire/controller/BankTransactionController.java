@@ -119,6 +119,9 @@ public class BankTransactionController {
                     if (updates.containsKey("isLinked")) {
                         transaction.setIsLinked((Boolean) updates.get("isLinked"));
                     }
+                    if (updates.containsKey("cmApplied")) {
+                        transaction.setCmApplied((Boolean) updates.get("cmApplied"));
+                    }
 
                     if (updates.containsKey("categorie")) {
                         transaction.setCategorie((String) updates.get("categorie"));
@@ -197,6 +200,7 @@ public class BankTransactionController {
         }
         tx.setCompte(compte);
         tx.setIsLinked(hasSelectedCompte(compte));
+        tx.setCmApplied(false);
         tx.setCategorie(request.getCategorie());
         tx.setRib(statement.getRib());
         tx.setIsValid(true);
@@ -261,6 +265,9 @@ public class BankTransactionController {
 
                 if (updates.containsKey("isLinked")) {
                     transaction.setIsLinked((Boolean) updates.get("isLinked"));
+                }
+                if (updates.containsKey("cmApplied")) {
+                    transaction.setCmApplied((Boolean) updates.get("cmApplied"));
                 }
 
                 if (updates.containsKey("categorie")) {

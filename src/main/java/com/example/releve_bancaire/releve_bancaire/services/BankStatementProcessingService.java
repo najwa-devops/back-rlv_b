@@ -142,11 +142,8 @@ public class BankStatementProcessingService {
     @Transactional
     public BankStatement processStatement(BankStatement statement, String bankType, List<String> allowedBanks) {
         log.info("=== DÉBUT TRAITEMENT RELEVÉ {} ===", statement.getId());
-        // Règle métier: conserver tous les uploads, même identiques.
-        final boolean duplicateDetectionActive = false;
-        if (duplicateDetectionEnabled) {
-            log.warn("La détection de doublon est configurée mais neutralisée (chaque relevé est conservé).");
-        }
+        // Règle métier: refuser tout doublon (même RIB + période).
+        final boolean duplicateDetectionActive = true;
 
         try {
             statement.setStatus(BankStatus.PROCESSING);
@@ -888,6 +885,10 @@ public class BankStatementProcessingService {
         BankStatement statement = statementRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Relevé non trouvé: " + id));
 
+        if (!statement.isModifiable()) {
+            throw new IllegalStateException("Relevé comptabilisé/validé, suppression impossible");
+        }
+
         // Supprimer les transactions
         transactionRepository.deleteByStatementId(id);
 
@@ -899,6 +900,32 @@ public class BankStatementProcessingService {
         statementRepository.delete(statement);
 
         log.info("✅ Relevé {} supprimé avec succès", id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<BankStatement> detectDuplicateFromUpload(byte[] fileData, String originalName) {
+        if (fileData == null || fileData.length == 0) {
+            return Optional.empty();
+        }
+        try {
+            String sourceName = originalName != null ? originalName : "upload";
+            String rawOcrText = bankStatementProcessor.process(fileData, sourceName);
+            if (rawOcrText == null || rawOcrText.trim().isEmpty()) {
+                return Optional.empty();
+            }
+            String cleanedText = cleaningService.cleanOcrText(rawOcrText);
+            var metadata = metadataExtractor.extractMetadata(cleanedText);
+            if (metadata == null || metadata.rib == null || metadata.month == null || metadata.year == null) {
+                return Optional.empty();
+            }
+            return statementRepository.findAllByRibAndYearAndMonthOrderByCreatedAtDescIdDesc(
+                            metadata.rib, metadata.year, metadata.month)
+                    .stream()
+                    .findFirst();
+        } catch (Exception e) {
+            log.warn("Détection de doublon upload ignorée (OCR/metadata KO): {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public ProcessingStatistics getStatistics() {
