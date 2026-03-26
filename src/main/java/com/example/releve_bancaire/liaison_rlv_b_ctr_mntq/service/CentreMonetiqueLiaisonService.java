@@ -654,6 +654,10 @@ public class CentreMonetiqueLiaisonService {
         List<CmExpansionDTO> result = new ArrayList<>();
         String currentDate = null;
         List<CentreMonetiqueTransaction> currentBlockTxs = new ArrayList<>();
+        BigDecimal currentMontant = null;
+        String currentReglementId = null;
+        BigDecimal currentCommissionHt = null;
+        BigDecimal currentTvaSurCommissions = null;
 
         for (CentreMonetiqueTransaction tx : cmTxs) {
             String section = nvl(tx.getSection()).trim().toUpperCase(Locale.ROOT);
@@ -661,31 +665,62 @@ public class CentreMonetiqueLiaisonService {
                 String d = nvl(tx.getDate());
                 if (!d.isBlank()) currentDate = d;
             } else if (section.equals("REGLEMENT TOTALS")) {
-                BigDecimal montant = tx.getMontant();
-                String reglementId = nvl(tx.getReference());
-                if (!currentBlockTxs.isEmpty() && montant != null) {
-                    BankTransaction bankTx = bankByAmount.get(amountKey(montant));
-                    if (bankTx != null) {
-                        String blockDate = (currentDate != null && !currentDate.isBlank())
-                                ? currentDate : nvl(currentBlockTxs.get(0).getDate());
-                        List<CmExpansionLineDTO> lines = currentBlockTxs.stream()
-                                .map(t -> new CmExpansionLineDTO(blockDate, nvl(t.getReference()),
-                                        nvl(t.getDcFlag()), toAmount(t.getMontant())))
-                                .toList();
-                        result.add(new CmExpansionDTO(bankTx.getId(), batch.getId(),
-                                nvl(batch.getOriginalName()), "REGLEMENT " + reglementId,
-                                toAmount(montant), "", "", lines));
-                    }
+                currentMontant = tx.getMontant();
+                currentReglementId = nvl(tx.getReference());
+                if (currentCommissionHt == null) {
+                    currentCommissionHt = tx.getDebit();
                 }
-                currentDate = null;
-                currentBlockTxs = new ArrayList<>();
+                if (currentTvaSurCommissions == null) {
+                    currentTvaSurCommissions = tx.getCredit();
+                }
+            } else if (section.equals("TOTAL COMMISSIONS HT")) {
+                currentCommissionHt = tx.getDebit();
+            } else if (section.equals("TOTAL TVA SUR COMMISSIONS")) {
+                currentTvaSurCommissions = tx.getDebit();
             } else if (section.startsWith("REGLEMENT ")
                     && !section.equals("REGLEMENT META")
                     && !section.equals("REGLEMENT TOTALS")) {
+                if (currentMontant != null) {
+                    appendBaridExpansion(result, batch, bankByAmount, currentDate, currentBlockTxs,
+                            currentReglementId, currentMontant, currentCommissionHt, currentTvaSurCommissions);
+                    currentBlockTxs = new ArrayList<>();
+                    currentMontant = null;
+                    currentReglementId = null;
+                    currentCommissionHt = null;
+                    currentTvaSurCommissions = null;
+                    currentDate = null;
+                }
                 currentBlockTxs.add(tx);
             }
         }
+        if (currentMontant != null) {
+            appendBaridExpansion(result, batch, bankByAmount, currentDate, currentBlockTxs,
+                    currentReglementId, currentMontant, currentCommissionHt, currentTvaSurCommissions);
+        }
         return result;
+    }
+
+    private void appendBaridExpansion(List<CmExpansionDTO> result,
+                                      CentreMonetiqueBatch batch,
+                                      Map<String, BankTransaction> bankByAmount,
+                                      String currentDate,
+                                      List<CentreMonetiqueTransaction> currentBlockTxs,
+                                      String reglementId,
+                                      BigDecimal montant,
+                                      BigDecimal commissionHt,
+                                      BigDecimal tvaSurCommissions) {
+        if (currentBlockTxs.isEmpty() || montant == null) return;
+        BankTransaction bankTx = bankByAmount.get(amountKey(montant));
+        if (bankTx == null) return;
+        String blockDate = (currentDate != null && !currentDate.isBlank())
+                ? currentDate : nvl(currentBlockTxs.get(0).getDate());
+        List<CmExpansionLineDTO> lines = currentBlockTxs.stream()
+                .map(t -> new CmExpansionLineDTO(blockDate, nvl(t.getReference()),
+                        nvl(t.getDcFlag()), toAmount(t.getMontant())))
+                .toList();
+        result.add(new CmExpansionDTO(bankTx.getId(), batch.getId(),
+                nvl(batch.getOriginalName()), "REGLEMENT " + nvl(reglementId),
+                toAmount(montant), toAmount(commissionHt), toAmount(tvaSurCommissions), lines));
     }
 
     private String toAmount(BigDecimal amount) {
